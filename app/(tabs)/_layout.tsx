@@ -1,13 +1,47 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import SignIn from "../auth/signIn";
 import SignUp from "../auth/signUp";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../firebase/firebase";
 
 export default function AppLayout() {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const auth = getAuth();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+
+            if (userData.profileCompleted) {
+              setIsSignedIn(true);
+            } else {
+              router.replace("/auth/profile");
+            }
+          } else {
+            setIsSignedIn(false);
+          }
+        } catch (error) {
+          console.error("Error checking user profile:", error);
+          setIsSignedIn(false);
+        }
+      } else {
+        setIsSignedIn(false);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   if (loading) {
     return (
@@ -32,6 +66,7 @@ export default function AppLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: "#ffd33d",
+        // headerShown: false,
         headerStyle: {
           backgroundColor: "#25292e",
         },

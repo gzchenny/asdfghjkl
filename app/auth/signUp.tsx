@@ -11,6 +11,8 @@ import { initializeApp } from "firebase/app";
 import { firebaseConfig } from "../../firebase/firebase";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { useRouter, Stack } from "expo-router";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../../firebase/firebase";
 
 export default function SignUp() {
   const app = initializeApp(firebaseConfig);
@@ -23,7 +25,20 @@ export default function SignUp() {
 
   const handleSignUp = async () => {
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid;
+      
+      await setDoc(doc(db, "users", userId), {
+        firstName: "N/A",
+        lastName: "N/A",
+        location: "N/A",
+        dob: "N/A",
+        phoneNumber: "N/A",
+        gender: "N/A",
+        email: email,
+        profileCompleted: false
+      });
+      
       Alert.alert("Success", "Your account has been created!");
       router.back();
     } catch (error: any) {

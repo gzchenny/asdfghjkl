@@ -11,6 +11,8 @@ import { initializeApp } from "firebase/app";
 import { firebaseConfig } from "../../firebase/firebase";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter, Stack } from "expo-router";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../firebase/firebase";
 
 export default function SignIn({ onSignIn }: { onSignIn: () => void }) {
   const app = initializeApp(firebaseConfig);
@@ -23,13 +25,32 @@ export default function SignIn({ onSignIn }: { onSignIn: () => void }) {
 
   const handleSignIn = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      Alert.alert("Success", "You are signed in!");
-      onSignIn();
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+
+        if (userData.profileCompleted) {
+          onSignIn();
+        } else {
+          router.replace("/auth/profile");
+        }
+      } else {
+        Alert.alert("Error", "User data not found in Firestore"); // Should not happen.
+      }
     } catch (error: any) {
-      Alert.alert("Error", error.message);
-      // Use this when we submit.
-      // Alert.alert("Invalid credentials", "Please check your email and password");
+      if (error.code === "auth/user-not-found") {
+        Alert.alert("Error", "User not found. Please sign up.");
+      } else if (error.code === "auth/wrong-password") {
+        Alert.alert("Error", "Incorrect password. Please try again.");
+      } else {
+        Alert.alert("Error", error.message);
+      }
     }
   };
 
