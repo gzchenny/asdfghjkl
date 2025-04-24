@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { firebaseConfig } from "../../firebase/firebase";
 
 export default function Index() {
+  
   return (
     <View
       style={{
@@ -11,7 +12,7 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <Text>sellPage.tsx</Text>
+      <Text>settings.tsx</Text>
     </View>
   );
 }
