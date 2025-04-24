@@ -10,7 +10,7 @@ import {
 import { initializeApp } from "firebase/app";
 import { firebaseConfig } from "../../firebase/firebase";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { useRouter } from "expo-router";
+import { useRouter, Stack } from "expo-router";
 
 export default function SignUp() {
   const app = initializeApp(firebaseConfig);
@@ -25,65 +25,68 @@ export default function SignUp() {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       Alert.alert("Success", "Your account has been created!");
-      router.push("/auth/signIn");
+      router.back();
     } catch (error: any) {
       Alert.alert("Error", error.message);
     }
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#25292e",
-        padding: 20,
-      }}
-    >
-      <Text style={{ color: "#fff", fontSize: 24, marginBottom: 20 }}>
-        Sign Up
-      </Text>
-      <TextInput
-        placeholder="Email"
-        placeholderTextColor="#aaa"
-        value={email}
-        onChangeText={setEmail}
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View
         style={{
-          width: "100%",
-          height: 40,
-          backgroundColor: "#fff",
-          borderRadius: 5,
-          marginBottom: 10,
-          paddingHorizontal: 10,
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#25292e",
+          padding: 20,
         }}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        placeholder="Password"
-        placeholderTextColor="#aaa"
-        value={password}
-        onChangeText={setPassword}
-        style={{
-          width: "100%",
-          height: 40,
-          backgroundColor: "#fff",
-          borderRadius: 5,
-          marginBottom: 20,
-          paddingHorizontal: 10,
-        }}
-        secureTextEntry
-      />
-      <Button title="Sign Up" onPress={handleSignUp} color="#ffd33d" />
-      <TouchableOpacity
-        onPress={() => router.push("/auth/signIn")}
-        style={{ marginTop: 20 }}
       >
-        <Text style={{ color: "#ffd33d", textDecorationLine: "underline" }}>
-          Already have an account? Sign in!
+        <Text style={{ color: "#fff", fontSize: 24, marginBottom: 20 }}>
+          Sign Up
         </Text>
-      </TouchableOpacity>
-    </View>
+        <TextInput
+          placeholder="Email"
+          placeholderTextColor="#aaa"
+          value={email}
+          onChangeText={setEmail}
+          style={{
+            width: "100%",
+            height: 40,
+            backgroundColor: "#fff",
+            borderRadius: 5,
+            marginBottom: 10,
+            paddingHorizontal: 10,
+          }}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        <TextInput
+          placeholder="Password"
+          placeholderTextColor="#aaa"
+          value={password}
+          onChangeText={setPassword}
+          style={{
+            width: "100%",
+            height: 40,
+            backgroundColor: "#fff",
+            borderRadius: 5,
+            marginBottom: 20,
+            paddingHorizontal: 10,
+          }}
+          secureTextEntry
+        />
+        <Button title="Sign Up" onPress={handleSignUp} color="#ffd33d" />
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{ marginTop: 20 }}
+        >
+          <Text style={{ color: "#ffd33d", textDecorationLine: "underline" }}>
+            Already have an account? Sign in!
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </>
   );
 }
