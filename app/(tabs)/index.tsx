@@ -1,6 +1,6 @@
 import { Text, View } from "react-native";
 import { initializeApp } from "firebase/app";
-import { firebaseConfig } from "../firebase/firebase";
+import { firebaseConfig } from "../../firebase/firebase";
 
 export default function Index() {
   let firebaseInitialized = false;
