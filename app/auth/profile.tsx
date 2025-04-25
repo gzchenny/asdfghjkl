@@ -73,6 +73,7 @@ export default function ProfileSetup() {
           phoneNumber,
           gender,
           profileCompleted: true,
+          chats: [],
         });
 
         Alert.alert(
