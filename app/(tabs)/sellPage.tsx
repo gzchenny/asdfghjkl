@@ -94,7 +94,12 @@ export default function SellPage() {
 
   return (
     <>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={true}  // ✅ Important for nested scrolling
+      >
+
         <Text style={styles.heading}>List Your Crop</Text>
 
         {showValidationError && (
@@ -117,6 +122,7 @@ export default function SellPage() {
             style={styles.dropdown}
             dropDownContainerStyle={styles.dropdownContainer}
             textStyle={{ color: "#000" }}
+            listMode="SCROLLVIEW"
           />
         </View>
 
@@ -131,7 +137,7 @@ export default function SellPage() {
           />
         </View>
 
-        {/* Quantity */}
+        
         <View style={styles.field}>
           <TextInput
             placeholder="Quantity (kg) *"
