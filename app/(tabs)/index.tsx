@@ -1,15 +1,69 @@
-import { Text, View } from "react-native";
-import { initializeApp } from "firebase/app";
-import { firebaseConfig } from "../../firebase/firebase";
+import React, { useState, useEffect } from "react";
+import { Text, View, ActivityIndicator } from "react-native";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../firebase/firebase";
 
 export default function Index() {
-  let firebaseInitialized = false;
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState<{
+    firstName?: string;
+    lastName?: string;
+    gender?: string;
+    location?: string;
+  } | null>(null);
 
-  try {
-    const app = initializeApp(firebaseConfig);
-    firebaseInitialized = !!app;
-  } catch (error) {
-    console.error("Firebase initialization error:", error);
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            setUserData(userDoc.data());
+          } else {
+            console.error("User data not found in Firestore.");
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      } else {
+        setUserData(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color="#ffd33d" />
+      </View>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ fontSize: 18, color: "#333" }}>
+          No user data available. Please sign in.
+        </Text>
+      </View>
+    );
   }
 
   return (
@@ -18,14 +72,18 @@ export default function Index() {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
+        padding: 20,
       }}
     >
-      <Text>
-        {firebaseInitialized
-          ? "Firebase is initialized successfully!"
-          : "Failed to initialize Firebase."}
+      <Text style={{ fontSize: 24, marginBottom: 10 }}>
+        Welcome, {userData.firstName}!
       </Text>
-      <Text>Edit app/index.tsx to edit this screen.</Text>
+      <Text style={{ fontSize: 18, marginBottom: 5 }}>
+        Gender: {userData.gender}
+      </Text>
+      <Text style={{ fontSize: 18, marginBottom: 5 }}>
+        Location: {userData.location}
+      </Text>
     </View>
   );
 }

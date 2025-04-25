@@ -7,17 +7,12 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
-import { initializeApp } from "firebase/app";
-import { firebaseConfig } from "../../firebase/firebase";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter, Stack } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../firebase/firebase";
+import { db, auth } from "../../firebase/firebase";
 
 export default function SignIn({ onSignIn }: { onSignIn: () => void }) {
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
   const router = useRouter();
 
   const [email, setEmail] = useState("");

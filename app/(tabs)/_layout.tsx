@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, Text } from "react-native";
 import { Tabs, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import SignIn from "../auth/signIn";
-import SignUp from "../auth/signUp";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 
 export default function AppLayout() {
   const [isSignedIn, setIsSignedIn] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [firstName, setFirstName] = useState<string | null>(null);
   const router = useRouter();
   const auth = getAuth();
 
@@ -23,6 +23,7 @@ export default function AppLayout() {
             const userData = userDoc.data();
 
             if (userData.profileCompleted) {
+              setFirstName(userData.firstName || "User");
               setIsSignedIn(true);
             } else {
               router.replace("/auth/profile");
@@ -66,7 +67,6 @@ export default function AppLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: "#ffd33d",
-        // headerShown: false,
         headerStyle: {
           backgroundColor: "#25292e",
         },
@@ -75,6 +75,11 @@ export default function AppLayout() {
         tabBarStyle: {
           backgroundColor: "#25292e",
         },
+        headerRight: () => (
+          <Text style={{ color: "#fff", marginRight: 10, fontSize: 16 }}>
+            {firstName}
+          </Text>
+        ),
       }}
     >
       <Tabs.Screen
