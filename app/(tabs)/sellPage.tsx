@@ -7,49 +7,84 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  Pressable,
+  Platform,
 } from "react-native";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
+import { getAuth } from "firebase/auth";
+import DropDownPicker from "react-native-dropdown-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function SellPage() {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  const [showValidationError, setShowValidationError] = useState(false);
+  const [value, setValue] = useState<string | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tempSelectedDate, setTempSelectedDate] = useState<Date>(new Date());
+
   const [formData, setFormData] = useState({
-    sellerID: "",
     itemName: "",
     costPerWeight: "",
     quantity: "",
     harvestDate: "",
-    imageURL: "",
+    imageUrl: "",
   });
 
+  const [open, setOpen] = useState(false);
+  const [cropOptions, setCropOptions] = useState([
+    { label: "Wheat", value: "Wheat" },
+    { label: "Corn", value: "Corn" },
+    { label: "Barley", value: "Barley" },
+    { label: "Soybeans", value: "Soybeans" },
+    { label: "Oats", value: "Oats" },
+    { label: "Rice", value: "Rice" },
+    { label: "Canola", value: "Canola" },
+    { label: "Chickpeas", value: "Chickpeas" },
+    { label: "Lentils", value: "Lentils" },
+    { label: "Peas", value: "Peas" },
+    { label: "Other", value: "Other" },
+  ]);
+
   const handleChange = (key: string, value: string) => {
-    setFormData({ ...formData, [key]: value });
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSearchText = (text: string) => {
+    const exists = cropOptions.some((item) => item.label.toLowerCase() === text.toLowerCase());
+    if (!exists && text.trim()) {
+      setCropOptions((prev) => [{ label: text, value: text }, ...prev]);
+    }
   };
 
   const handleSubmit = async () => {
-    const { sellerID, itemName, costPerWeight, quantity, harvestDate } = formData;
+    const { itemName, costPerWeight, quantity, harvestDate } = formData;
 
-    if (!sellerID || !itemName || !costPerWeight || !quantity || !harvestDate) {
-      Alert.alert("Error", "Please fill in all required fields.");
+    if (!itemName || !costPerWeight || !quantity || !harvestDate) {
+      setShowValidationError(true);
       return;
     }
 
+    setShowValidationError(false);
+
     try {
       await addDoc(collection(db, "crops"), {
-        sellerID,
-        itemName,
-        costPerWeight: parseFloat(costPerWeight),
-        quantity: parseFloat(quantity),
-        harvestDate,
-        imageURL: formData.imageURL || "",
+        ...formData,
+        costPerWeight: parseFloat(formData.costPerWeight),
+        quantity: parseFloat(formData.quantity),
+        sellerID: user?.uid || "anonymous",
       });
+
       Alert.alert("Success", "Crop listed successfully!");
+
       setFormData({
-        sellerID: "",
         itemName: "",
         costPerWeight: "",
         quantity: "",
         harvestDate: "",
-        imageURL: "",
+        imageUrl: "",
       });
     } catch (error) {
       console.error("Error adding crop:", error);
@@ -58,69 +93,167 @@ export default function SellPage() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>List Your Crop</Text>
+    <>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
+        <Text style={styles.heading}>List Your Crop</Text>
 
-      <TextInput
-        placeholder="Seller ID"
-        value={formData.sellerID}
-        onChangeText={(text) => handleChange("sellerID", text)}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Crop Name"
-        value={formData.itemName}
-        onChangeText={(text) => handleChange("itemName", text)}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Price per kg ($)"
-        value={formData.costPerWeight}
-        onChangeText={(text) => handleChange("costPerWeight", text)}
-        style={styles.input}
-        keyboardType="numeric"
-      />
-      <TextInput
-        placeholder="Quantity (kg)"
-        value={formData.quantity}
-        onChangeText={(text) => handleChange("quantity", text)}
-        style={styles.input}
-        keyboardType="numeric"
-      />
-      <TextInput
-        placeholder="Harvest Date (YYYY-MM-DD)"
-        value={formData.harvestDate}
-        onChangeText={(text) => handleChange("harvestDate", text)}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Image URL (optional)"
-        value={formData.imageURL}
-        onChangeText={(text) => handleChange("imageURL", text)}
-        style={styles.input}
-      />
+        {showValidationError && (
+          <Text style={styles.requiredNote}>* All fields are required (except image)</Text>
+        )}
 
-      <Button title="Submit Crop" onPress={handleSubmit} color="#ffd33d" />
-    </ScrollView>
+        <View style={[styles.dropdownWrapper, styles.field]}>
+          <DropDownPicker
+            open={open}
+            setOpen={setOpen}
+            value={value}
+            setValue={setValue}
+            items={cropOptions}
+            setItems={setCropOptions}
+            onChangeValue={(val) => handleChange("itemName", val ?? "")}
+            searchable
+            onChangeSearchText={handleSearchText}
+            placeholder="Select or type crop name... *"
+            style={styles.dropdown}
+            dropDownContainerStyle={styles.dropdownContainer}
+            listMode="SCROLLVIEW"
+          />
+        </View>
+
+        <View style={styles.field}>
+          <TextInput
+            placeholder="Cost per Weight ($/kg) *"
+            placeholderTextColor="#000000"
+            value={formData.costPerWeight}
+            onChangeText={(text) => handleChange("costPerWeight", text)}
+            style={styles.input}
+            keyboardType="numeric"
+          />
+        </View>
+
+        <View style={styles.field}>
+          <TextInput
+            placeholder="Quantity (kg) *"
+            placeholderTextColor="#000000"
+            value={formData.quantity}
+            onChangeText={(text) => handleChange("quantity", text)}
+            style={styles.input}
+            keyboardType="numeric"
+          />
+        </View>
+
+        <View style={styles.field}>
+          <Pressable
+            onPress={() => {
+              setTempSelectedDate(
+                formData.harvestDate ? new Date(formData.harvestDate) : new Date()
+              );
+              setShowDatePicker(true);
+            }}
+            style={[styles.input, styles.dateField]}
+          >
+            <Text>{formData.harvestDate || "Select Harvest Date"}</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.field}>
+          <TextInput
+            placeholder="Image URL (optional)"
+            placeholderTextColor="#000000"
+            value={formData.imageUrl}
+            onChangeText={(text) => handleChange("imageUrl", text)}
+            style={styles.input}
+          />
+        </View>
+
+        <View style={{ marginTop: 20 }}>
+          <Button title="Submit Crop" onPress={handleSubmit} color="#ffd33d" />
+        </View>
+      </ScrollView>
+
+      {showDatePicker && (
+        <>
+          <DateTimePicker
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "calendar"}
+            value={tempSelectedDate}
+            textColor="#000"
+            onChange={(event, selectedDate) => {
+              if (event.type === "set" && selectedDate) {
+                setTempSelectedDate(selectedDate);
+              } else {
+                setShowDatePicker(false);
+              }
+            }}
+          />
+
+          <View style={{ alignItems: "center", marginTop: 10 }}>
+            <Button
+              title="Confirm Date"
+              onPress={() => {
+                const formatted = tempSelectedDate.toISOString().split("T")[0];
+                handleChange("harvestDate", formatted);
+                setShowDatePicker(false);
+              }}
+              color="#4CAF50"
+            />
+          </View>
+        </>
+      )}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     padding: 20,
+    backgroundColor: "#f4f4f4",
   },
   heading: {
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    color: "#222",
+  },
+  requiredNote: {
+    color: "#cc0000",
+    marginBottom: 12,
+    fontSize: 14,
+    fontStyle: "italic",
+  },
+  dropdownWrapper: {
+    zIndex: 1000,
+  },
+  dropdown: {
+    backgroundColor: "#fff",
+    borderColor: "#ccc",
+  },
+  dropdownContainer: {
+    borderColor: "#ccc",
   },
   input: {
+    backgroundColor: "#fff",
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: "#ccc",
-    padding: 10,
     borderRadius: 6,
-    marginBottom: 12,
+  },
+  dateField: {
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
     backgroundColor: "#fff",
+  },
+  field: {
+    marginBottom: 16,
+  },
+  submitButton: {
+    marginTop: 24,
+    borderRadius: 8,
+    overflow: "hidden",
   },
 });
