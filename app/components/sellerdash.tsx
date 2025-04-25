@@ -16,8 +16,8 @@ export default function WebSellerDashboard() {
                 </View>
 
                 <View style={styles.navItems}>
-                    <TouchableOpacity style={styles.navItem}>
-                        <Text style={styles.navText, styles.activeNavItem}>Sales Summary</Text>
+                    <TouchableOpacity style={[styles.navItem, styles.activeNavItem]}>
+                        <Text style={styles.navText}>Sales Summary</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.navItem}>
                         <Text style={styles.navText}>Stock Review</Text>

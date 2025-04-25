@@ -74,11 +74,11 @@ export default function Index() {
     <View style={styles.container}>
       <View style={styles.welcomeContainer}>
         <Text style={styles.welcomeText}>Welcome back, {userData.firstName}.</Text>
-        <Text style={styles.subText}>Your product is on the way!</Text>
+        <Text style={styles.subText}>Your crop is on the way!</Text>
       </View>
       <BuyerDashboard />
     </View>
-  );
+  );S
 }
 
 const styles = StyleSheet.create({
@@ -87,14 +87,14 @@ const styles = StyleSheet.create({
     flexDirection: 'column',      
     alignItems: 'flex-start',     
     backgroundColor: '#fff',
-    paddingTop: 16,               
-    paddingHorizontal: 16,
+    paddingTop: 20,               
+    paddingHorizontal: 10,
   },
 
   welcomeContainer: {
     alignSelf: 'stretch',         
     backgroundColor: 'transparent',
-    marginBottom: 10, 
+    marginBottom: 0, 
     marginLeft: 20,            
   },
   welcomeText: {
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   subText: {
     color: '#1E4035',
     fontSize: 26,
-    marginBottom: 0,
+    marginBottom: 10,
   },
 
   content: {

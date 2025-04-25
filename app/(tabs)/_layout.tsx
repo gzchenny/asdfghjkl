@@ -47,7 +47,7 @@ export default function AppLayout() {
 
   return (
     <Tabs
-      screenOptions={({ route }) => ({ // Add route parameter here
+      screenOptions={({ route }) => ({
         headerShown: true,
         headerTitleAlign: 'left',
         headerTitle: () => <LogoTitle />,
@@ -56,17 +56,13 @@ export default function AppLayout() {
         tabBarStyle: {
           backgroundColor: '#F5F5F5',
         },
-        headerRight: () => (
-          <Text style={{ color: '#fff', marginRight: 10, fontSize: 16 }}>
-            {firstName}
-          </Text>
-        ),
+        
         tabBarActiveTintColor: '#1E4035',
         tabBarInactiveTintColor: '#888',
         headerStyle: { backgroundColor: '#FFFFFF' },
         tabBarIcon: ({ color, focused }) => {
           let iconName: string;
-          switch (route.name) { // Use route.name here
+          switch (route.name) {
             case 'index':    iconName = focused ? 'home'           : 'home-outline';        break;
             case 'buyPage':  iconName = focused ? 'cash'           : 'cash-outline';        break;
             case 'sellPage': iconName = focused ? 'storefront'     : 'storefront-outline';  break;
@@ -116,11 +112,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
   },
-
-  name: {
-
-  },
-  
 })
 
 
