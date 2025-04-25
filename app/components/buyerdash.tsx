@@ -48,7 +48,7 @@ export default function BuyerDashboard() {
                 </View>
         
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Recent Trends</Text>
+                    <Text style={styles.sectionTitle}>Current Market</Text>
                 </View>
 
                 <View style={styles.section}>
@@ -94,6 +94,10 @@ const styles = StyleSheet.create({
         marginBottom: 24,
         position: 'relative',
         overflow: 'visible',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
     },
 
     sectionTitle: {
