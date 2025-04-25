@@ -15,7 +15,6 @@ import { useRouter, Stack } from "expo-router";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db } from "../../firebase/firebase";
-import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Location from "expo-location";
 
@@ -30,7 +29,6 @@ export default function ProfileSetup() {
   const [location, setLocation] = useState("Fetching location...");
   const [dob, setDob] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [gender, setGender] = useState("prefer-not-to-say");
 
   const [showDobPicker, setShowDobPicker] = useState(false);
   const [tempDob, setTempDob] = useState<Date>(new Date());
@@ -39,7 +37,6 @@ export default function ProfileSetup() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUserId(user.uid);
-
         try {
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists()) {
@@ -50,7 +47,6 @@ export default function ProfileSetup() {
               if (userData.location && userData.location !== "N/A") setLocation(userData.location);
               if (userData.dob && userData.dob !== "N/A") setDob(userData.dob);
               if (userData.phoneNumber && userData.phoneNumber !== "N/A") setPhoneNumber(userData.phoneNumber);
-              if (userData.gender) setGender(userData.gender);
             }
           }
         } catch (error) {
@@ -96,7 +92,6 @@ export default function ProfileSetup() {
           location,
           dob,
           phoneNumber,
-          gender,
           profileCompleted: true,
           chats: [],
         });
@@ -188,16 +183,6 @@ export default function ProfileSetup() {
           keyboardType="phone-pad"
         />
 
-        <Text style={styles.label}>Gender</Text>
-        <View style={styles.pickerContainer}>
-          <Picker selectedValue={gender} onValueChange={setGender} style={styles.picker} dropdownIconColor="#fff">
-            <Picker.Item label="Prefer not to say" value="prefer-not-to-say" />
-            <Picker.Item label="Male" value="male" />
-            <Picker.Item label="Female" value="female" />
-            <Picker.Item label="Non-binary" value="non-binary" />
-          </Picker>
-        </View>
-
         <Button title="Complete Profile" onPress={handleSubmit} color="#ffd33d" />
       </ScrollView>
     </>
@@ -241,21 +226,6 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     marginBottom: 5,
     marginTop: 10,
-  },
-  pickerContainer: {
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    marginBottom: 16,
-    overflow: "hidden",
-  },
-  picker: {
-    height: 42,
-    width: "100%",
-    color: "#000",
-    paddingHorizontal: 12,
   },
   datePressable: {
     width: "100%",

@@ -34,7 +34,7 @@ export default function SellPage() {
   });
 
   const [open, setOpen] = useState(false);
-  const [cropOptions, setCropOptions] = useState<{ label: string; value: string }[]>([
+  const [cropOptions, setCropOptions] = useState([
     { label: "Wheat", value: "Wheat" },
     { label: "Corn", value: "Corn" },
     { label: "Barley", value: "Barley" },
@@ -94,19 +94,13 @@ export default function SellPage() {
 
   return (
     <>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-        nestedScrollEnabled={true}  // ✅ Important for nested scrolling
-      >
-
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
         <Text style={styles.heading}>List Your Crop</Text>
 
         {showValidationError && (
           <Text style={styles.requiredNote}>* All fields are required (except image)</Text>
         )}
 
-        
         <View style={[styles.dropdownWrapper, styles.field]}>
           <DropDownPicker
             open={open}
@@ -116,20 +110,19 @@ export default function SellPage() {
             items={cropOptions}
             setItems={setCropOptions}
             onChangeValue={(val) => handleChange("itemName", val ?? "")}
-            searchable={true}
+            searchable
             onChangeSearchText={handleSearchText}
             placeholder="Select or type crop name... *"
             style={styles.dropdown}
             dropDownContainerStyle={styles.dropdownContainer}
-            textStyle={{ color: "#000" }}
             listMode="SCROLLVIEW"
           />
         </View>
 
-        
         <View style={styles.field}>
           <TextInput
             placeholder="Cost per Weight ($/kg) *"
+            placeholderTextColor="#000000"
             value={formData.costPerWeight}
             onChangeText={(text) => handleChange("costPerWeight", text)}
             style={styles.input}
@@ -137,10 +130,10 @@ export default function SellPage() {
           />
         </View>
 
-        
         <View style={styles.field}>
           <TextInput
             placeholder="Quantity (kg) *"
+            placeholderTextColor="#000000"
             value={formData.quantity}
             onChangeText={(text) => handleChange("quantity", text)}
             style={styles.input}
@@ -148,7 +141,6 @@ export default function SellPage() {
           />
         </View>
 
-        
         <View style={styles.field}>
           <Pressable
             onPress={() => {
@@ -159,40 +151,37 @@ export default function SellPage() {
             }}
             style={[styles.input, styles.dateField]}
           >
-            <Text style={{ color: formData.harvestDate ? "#000" : "#888" }}>
-              {formData.harvestDate || "Select Harvest Date"}
-            </Text>
+            <Text>{formData.harvestDate || "Select Harvest Date"}</Text>
           </Pressable>
         </View>
 
-        
         <View style={styles.field}>
           <TextInput
             placeholder="Image URL (optional)"
+            placeholderTextColor="#000000"
             value={formData.imageUrl}
             onChangeText={(text) => handleChange("imageUrl", text)}
             style={styles.input}
           />
         </View>
 
-        
         <View style={{ marginTop: 20 }}>
           <Button title="Submit Crop" onPress={handleSubmit} color="#ffd33d" />
         </View>
       </ScrollView>
 
-      
       {showDatePicker && (
         <>
           <DateTimePicker
             mode="date"
             display={Platform.OS === "ios" ? "spinner" : "calendar"}
             value={tempSelectedDate}
+            textColor="#000"
             onChange={(event, selectedDate) => {
               if (event.type === "set" && selectedDate) {
                 setTempSelectedDate(selectedDate);
               } else {
-                setShowDatePicker(false); 
+                setShowDatePicker(false);
               }
             }}
           />
@@ -245,13 +234,12 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: "#fff",
     fontSize: 16,
-    color: "#000", // use black for better readability and consistency
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 6,
-  },  
+  },
   dateField: {
     paddingVertical: 12,
     paddingHorizontal: 10,
@@ -260,7 +248,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: "#fff",
   },
-  
   field: {
     marginBottom: 16,
   },
