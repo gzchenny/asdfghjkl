@@ -98,6 +98,7 @@ export default function ProfileSetup() {
           phoneNumber,
           gender,
           profileCompleted: true,
+          chats: [],
         });
 
         Alert.alert("Profile Updated", "Your profile has been set up successfully!", [
