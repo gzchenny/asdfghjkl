@@ -3,6 +3,7 @@ import { Text, View, ActivityIndicator } from "react-native";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
+import BuyItem from "../components/BuyItem";
 
 export default function Index() {
   const [loading, setLoading] = useState(true);
@@ -66,6 +67,10 @@ export default function Index() {
     );
   }
 
+  function handleConfirm(itemName: string, quantity: number, totalCost: number): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <View
       style={{
@@ -84,6 +89,10 @@ export default function Index() {
       <Text style={{ fontSize: 18, marginBottom: 5 }}>
         Location: {userData.location}
       </Text>
+      <Text style={{ fontSize: 48, marginBottom: 50, marginTop: 50 }}>
+        TESTING COMPONENTS
+      </Text>
+      <BuyItem itemName="Item A" itemCost={5.99} onConfirm={handleConfirm} />
     </View>
   );
 }

@@ -15,13 +15,9 @@ export default function Settings() {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#25292e",
-        padding: 20,
       }}
     >
-      <Text style={{ color: "#fff", fontSize: 24, marginBottom: 20 }}>
-        Settings
-      </Text>
+      <Text>settings.tsx</Text>
       <Button
         title="Edit Profile"
         onPress={handleEditProfile}
