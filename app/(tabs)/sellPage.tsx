@@ -245,13 +245,13 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: "#fff",
     fontSize: 16,
-    color: "#000",
+    color: "#000", // use black for better readability and consistency
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 6,
-  },
+  },  
   dateField: {
     paddingVertical: 12,
     paddingHorizontal: 10,
