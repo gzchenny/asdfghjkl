@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, Animated } from "react-native";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 import BuyItem from "../components/BuyItem";
+import BuyerDashboard from "../components/buyerdash";
 
 export default function Index() {
   const [loading, setLoading] = useState(true);
@@ -44,9 +45,7 @@ export default function Index() {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-        }}
-      >
-        <ActivityIndicator size="large" color="#ffd33d" />
+        }}>
       </View>
     );
   }
@@ -72,27 +71,44 @@ export default function Index() {
   }
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 20,
-      }}
-    >
-      <Text style={{ fontSize: 24, marginBottom: 10 }}>
-        Welcome, {userData.firstName}!
-      </Text>
-      <Text style={{ fontSize: 18, marginBottom: 5 }}>
-        Gender: {userData.gender}
-      </Text>
-      <Text style={{ fontSize: 18, marginBottom: 5 }}>
-        Location: {userData.location}
-      </Text>
-      <Text style={{ fontSize: 48, marginBottom: 50, marginTop: 50 }}>
-        TESTING COMPONENTS
-      </Text>
-      <BuyItem itemName="Item A" itemCost={5.99} onConfirm={handleConfirm} />
+    <View style={styles.container}>
+      <View style={styles.welcomeContainer}>
+        <Text style={styles.welcomeText}>Welcome back, {userData.firstName}.</Text>
+        <Text style={styles.subText}>Your product is on the way!</Text>
+      </View>
+      <BuyerDashboard />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: 'column',      
+    alignItems: 'flex-start',     
+    backgroundColor: '#fff',
+    paddingTop: 16,               
+    paddingHorizontal: 16,
+  },
+
+  welcomeContainer: {
+    alignSelf: 'stretch',         
+    backgroundColor: 'transparent',
+    marginBottom: 10, 
+    marginLeft: 20,            
+  },
+  welcomeText: {
+    color: '#727272',
+    fontSize: 24,
+    marginBottom: 0,
+  },
+  subText: {
+    color: '#1E4035',
+    fontSize: 26,
+    marginBottom: 0,
+  },
+
+  content: {
+    alignSelf: 'stretch',
+  },
+});
