@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   },
   actionRow: {
     flexDirection: "row",
-    alignItems: "left",
+    alignItems: "center",
     justifyContent: "space-between",
   },
   quantityPill: {

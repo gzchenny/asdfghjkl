@@ -57,7 +57,6 @@ export default function SellPage() {
     { label: "Potatoes", value: "Potatoes" },
     { label: "Tomatoes", value: "Tomatoes" },
     { label: "Carrots", value: "Carrots" },
-    { label: "Tomatoes", value: "Tomatoes" },
     { label: "Barley", value: "Barley" },
     { label: "Soybeans", value: "Soybeans" },
     { label: "Oats", value: "Oats" },
@@ -598,15 +597,17 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
+    marginTop: 24,
   },
   modalHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 16,
+  },
+  padding: {
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: "#FFFFFF",
   },
   modalTitle: {
     fontSize: 18,
@@ -614,7 +615,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     padding: 20,
-    backgroundColor: "#f4f4f4",
+    backgroundColor: "#FFFFFF",
   },
   requiredNote: {
     color: "#cc0000",
