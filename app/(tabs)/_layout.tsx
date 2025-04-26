@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 import { Tabs, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -37,19 +38,34 @@ export default function AppLayout() {
             }
           } else {
             setIsSignedIn(false);
+            router.replace("/auth/signIn");
           }
         } catch (error) {
           console.error("Error checking user profile:", error);
           setIsSignedIn(false);
+          router.replace("/auth/signIn");
         }
       } else {
         setIsSignedIn(false);
+        router.replace("/auth/signIn");
       }
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1E4035" />
+      </View>
+    );
+  }
+
+  if (!isSignedIn) {
+    return null;
+  }
 
   return (
     <Tabs
@@ -62,7 +78,6 @@ export default function AppLayout() {
         tabBarStyle: {
           backgroundColor: "#F5F5F5",
         },
-
         tabBarActiveTintColor: "#1E4035",
         tabBarInactiveTintColor: "#888",
         headerStyle: { backgroundColor: "#FFFFFF" },
@@ -125,17 +140,20 @@ const LogoTitle = () => (
 );
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   logo: {
     width: 50,
     height: 50,
   },
-
   logoText: {
     fontSize: 20,
     fontWeight: "800",
     color: "#1E4035",
   },
-
   logoContainer: {
     flexDirection: "row",
     alignItems: "center",
