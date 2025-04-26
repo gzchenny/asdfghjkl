@@ -53,7 +53,9 @@ export default function SellPage() {
   };
 
   const handleSearchText = (text: string) => {
-    const exists = cropOptions.some((item) => item.label.toLowerCase() === text.toLowerCase());
+    const exists = cropOptions.some(
+      (item) => item.label.toLowerCase() === text.toLowerCase()
+    );
     if (!exists && text.trim()) {
       setCropOptions((prev) => [{ label: text, value: text }, ...prev]);
     }
@@ -94,11 +96,17 @@ export default function SellPage() {
 
   return (
     <>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
+      >
         <Text style={styles.heading}>List Your Crop</Text>
 
         {showValidationError && (
-          <Text style={styles.requiredNote}>* All fields are required (except image)</Text>
+          <Text style={styles.requiredNote}>
+            * All fields are required (except image)
+          </Text>
         )}
 
         <View style={[styles.dropdownWrapper, styles.field]}>
@@ -145,7 +153,9 @@ export default function SellPage() {
           <Pressable
             onPress={() => {
               setTempSelectedDate(
-                formData.harvestDate ? new Date(formData.harvestDate) : new Date()
+                formData.harvestDate
+                  ? new Date(formData.harvestDate)
+                  : new Date()
               );
               setShowDatePicker(true);
             }}

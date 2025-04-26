@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, Animated } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Animated,
+} from "react-native";
 import { Tabs, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import SignIn from "../auth/signIn";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
-
 
 export default function AppLayout() {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -47,53 +53,76 @@ export default function AppLayout() {
 
   return (
     <Tabs
-      screenOptions={({ route }) => ({
+      screenOptions={({ route }: { route: { name: string } }) => ({
         headerShown: true,
-        headerTitleAlign: 'left',
+        headerTitleAlign: "left",
         headerTitle: () => <LogoTitle />,
-        headerTintColor: '#fff',
+        headerTintColor: "#fff",
         headerShadowVisible: false,
         tabBarStyle: {
-          backgroundColor: '#F5F5F5',
+          backgroundColor: "#F5F5F5",
         },
-        
-        tabBarActiveTintColor: '#1E4035',
-        tabBarInactiveTintColor: '#888',
-        headerStyle: { backgroundColor: '#FFFFFF' },
+
+        tabBarActiveTintColor: "#1E4035",
+        tabBarInactiveTintColor: "#888",
+        headerStyle: { backgroundColor: "#FFFFFF" },
         tabBarIcon: ({ color, focused }) => {
-          let iconName: string;
+          let iconName: typeof Ionicons.defaultProps.name;
           switch (route.name) {
-            case 'index':    iconName = focused ? 'home'           : 'home-outline';        break;
-            case 'buyPage':  iconName = focused ? 'cash'           : 'cash-outline';        break;
-            case 'sellPage': iconName = focused ? 'storefront'     : 'storefront-outline';  break;
-            case 'settings': iconName = focused ? 'settings'       : 'settings-outline';    break;
-            default:         iconName = 'ellipse';
+            case "index":
+              iconName = focused ? "home" : "home-outline";
+              break;
+            case "buyPage":
+              iconName = focused ? "cash" : "cash-outline";
+              break;
+            case "sellPage":
+              iconName = focused ? "storefront" : "storefront-outline";
+              break;
+            case "messages":
+              iconName = focused
+                ? "chatbubble-ellipses"
+                : "chatbubble-ellipses-outline";
+              break;
+            case "settings":
+              iconName = focused ? "settings" : "settings-outline";
+              break;
+            default:
+              iconName = "ellipse";
           }
           return <Ionicons name={iconName} size={24} color={color} />;
         },
         tabBarLabel:
-          route.name === 'buyPage' ? 'Buy' :
-          route.name === 'sellPage' ? 'Sell' :
-          route.name === 'settings' ? 'Settings' :
-          route.name === 'index' ? 'Home' : 'Home',
+          route.name === "buyPage"
+            ? "Buy"
+            : route.name === "sellPage"
+            ? "Sell"
+            : route.name === "settings"
+            ? "Settings"
+            : route.name === "messages"
+            ? "Messages"
+            : route.name === "index"
+            ? "Home"
+            : "Home",
       })}
     >
       <Tabs.Screen name="index" />
       <Tabs.Screen name="buyPage" />
       <Tabs.Screen name="sellPage" />
+      <Tabs.Screen name="messages" />
       <Tabs.Screen name="settings" />
     </Tabs>
   );
 }
 
-const LogoTitle = () =>  (
+const LogoTitle = () => (
   <View style={styles.logoContainer}>
-    <Image 
-      source={require('../../assets/images/logo.png')} 
-      style={styles.logo} />
+    <Image
+      source={require("../../assets/images/logo.png")}
+      style={styles.logo}
+    />
     <Text style={styles.logoText}>crop</Text>
   </View>
-)
+);
 
 const styles = StyleSheet.create({
   logo: {
@@ -103,16 +132,13 @@ const styles = StyleSheet.create({
 
   logoText: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#1E4035',
+    fontWeight: "800",
+    color: "#1E4035",
   },
 
   logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "transparent",
   },
-})
-
-
-
+});

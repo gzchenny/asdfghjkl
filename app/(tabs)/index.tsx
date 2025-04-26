@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, Animated } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Animated,
+} from "react-native";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
@@ -45,8 +52,8 @@ export default function Index() {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-        }}>
-      </View>
+        }}
+      ></View>
     );
   }
 
@@ -66,49 +73,55 @@ export default function Index() {
     );
   }
 
-  function handleConfirm(itemName: string, quantity: number, totalCost: number): void {
+  function handleConfirm(
+    itemName: string,
+    quantity: number,
+    totalCost: number
+  ): void {
     throw new Error("Function not implemented.");
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.welcomeContainer}>
-        <Text style={styles.welcomeText}>Welcome back, {userData.firstName}.</Text>
+        <Text style={styles.welcomeText}>
+          Welcome back, {userData.firstName}.
+        </Text>
         <Text style={styles.subText}>Your crop is on the way!</Text>
       </View>
       <BuyerDashboard />
     </View>
-  );S
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column',      
-    alignItems: 'flex-start',     
-    backgroundColor: '#fff',
-    paddingTop: 20,               
+    flexDirection: "column",
+    alignItems: "flex-start",
+    backgroundColor: "#fff",
+    paddingTop: 20,
     paddingHorizontal: 10,
   },
 
   welcomeContainer: {
-    alignSelf: 'stretch',         
-    backgroundColor: 'transparent',
-    marginBottom: 0, 
-    marginLeft: 20,            
+    alignSelf: "stretch",
+    backgroundColor: "transparent",
+    marginBottom: 0,
+    marginLeft: 20,
   },
   welcomeText: {
-    color: '#727272',
+    color: "#727272",
     fontSize: 24,
     marginBottom: 0,
   },
   subText: {
-    color: '#1E4035',
+    color: "#1E4035",
     fontSize: 26,
     marginBottom: 20,
   },
 
   content: {
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
   },
 });

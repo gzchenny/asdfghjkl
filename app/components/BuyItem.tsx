@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 
 interface BuyItemProps {
   itemName: string;
@@ -7,7 +15,11 @@ interface BuyItemProps {
   onConfirm: (itemName: string, quantity: number, totalCost: number) => void;
 }
 
-export default function BuyItem({ itemName, itemCost, onConfirm }: BuyItemProps) {
+export default function BuyItem({
+  itemName,
+  itemCost,
+  onConfirm,
+}: BuyItemProps) {
   const [quantity, setQuantity] = useState<number>(1);
 
   const handleConfirm = () => {
@@ -21,7 +33,8 @@ export default function BuyItem({ itemName, itemCost, onConfirm }: BuyItemProps)
   };
 
   const increaseQuantity = () => setQuantity((prev) => prev + 1);
-  const decreaseQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+  const decreaseQuantity = () =>
+    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
   const totalCost = quantity * itemCost; // Dynamically calculate total cost
 
@@ -30,7 +43,10 @@ export default function BuyItem({ itemName, itemCost, onConfirm }: BuyItemProps)
       <Text style={styles.itemName}>{itemName}</Text>
       <Text style={styles.itemCost}>Cost per item: ${itemCost.toFixed(2)}</Text>
       <View style={styles.quantityContainer}>
-        <TouchableOpacity onPress={decreaseQuantity} style={styles.quantityButton}>
+        <TouchableOpacity
+          onPress={decreaseQuantity}
+          style={styles.quantityButton}
+        >
           <Text style={styles.quantityButtonText}>-</Text>
         </TouchableOpacity>
         <TextInput
@@ -39,7 +55,10 @@ export default function BuyItem({ itemName, itemCost, onConfirm }: BuyItemProps)
           value={quantity.toString()}
           onChangeText={(text) => setQuantity(Number(text))}
         />
-        <TouchableOpacity onPress={increaseQuantity} style={styles.quantityButton}>
+        <TouchableOpacity
+          onPress={increaseQuantity}
+          style={styles.quantityButton}
+        >
           <Text style={styles.quantityButtonText}>+</Text>
         </TouchableOpacity>
       </View>
