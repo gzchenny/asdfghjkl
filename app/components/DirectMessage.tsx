@@ -92,7 +92,6 @@ export default function DirectMessage({
         content: messageText.trim(),
         senderId: currentUser.uid,
         timestamp: serverTimestamp(),
-        // SOFTDELETE, SOFTEDIT, REACTIONS
       });
       setMessageText("");
     } catch (error) {

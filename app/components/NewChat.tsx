@@ -48,7 +48,6 @@ export default function NewChat({
       return;
     }
 
-    // NOTE: CHANGE ALL INSTANCES OF USERID TO USERNAME ONCE SET USERNAME IS SET UP
     if (userId === currentUser?.uid) {
       Alert.alert("Error", "You cannot start a chat with yourself");
       return;

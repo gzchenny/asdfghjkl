@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import RecommendedFarms from "./recommendations";
 
 export default function BuyerDashboard() {
   const orders = [
@@ -172,6 +173,10 @@ export default function BuyerDashboard() {
         </View>
 
         {/* Recommendations Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Recommended for You</Text>
+          <RecommendedFarms />
+        </View>
       </ScrollView>
     </View>
   );
@@ -416,18 +421,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    justifyContent: "space-between", // Ensures the button stays at the bottom
+    justifyContent: "space-between", 
   },
   button: {
     backgroundColor: "#1E4035",
     paddingVertical: 10,
     borderRadius: 6,
     alignItems: "center",
-    marginTop: 16, // Adds spacing from the content above
+    marginTop: 16,
   },
-  buttonText: {
+    buttonText: {
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
   },
+
+
 });

@@ -52,7 +52,6 @@ export default function SellPage() {
     { label: "Other", value: "Other" },
   ]);
 
-  // Mock listing data for the dashboard
   const activeCrops = [
     { id: 1, name: "Corn", quantity: "500kg", price: "$2.50/kg", sales: 12 },
     { id: 2, name: "Wheat", quantity: "300kg", price: "$1.75/kg", sales: 8 },
@@ -65,7 +64,6 @@ export default function SellPage() {
 
   const handleCloseAddCrop = () => {
     setShowAddCropModal(false);
-    // Reset form data
     setFormData({
       itemName: "",
       costPerWeight: "",
@@ -118,7 +116,7 @@ export default function SellPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Seller Dashboard */}
+      {}
       <ScrollView style={styles.dashboardContainer}>
         <View style={styles.headerSection}>
           <Text style={styles.dashboardTitle}>Seller Dashboard</Text>
@@ -131,7 +129,7 @@ export default function SellPage() {
           </TouchableOpacity>
         </View>
 
-        {/* Active Listings Section */}
+        {}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Your Active Listings</Text>
           {activeCrops.map((crop) => (
@@ -152,7 +150,7 @@ export default function SellPage() {
           ))}
         </View>
 
-        {/* Sales Overview Section */}
+        {}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Sales Overview</Text>
           <View style={styles.statsCard}>
@@ -171,7 +169,7 @@ export default function SellPage() {
           </View>
         </View>
 
-        {/* Recent Orders Section */}
+        {}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Orders</Text>
           <View style={styles.orderCard}>
@@ -193,7 +191,7 @@ export default function SellPage() {
         </View>
       </ScrollView>
 
-      {/* Add Crop Modal */}
+      {}
       <Modal
         visible={showAddCropModal}
         animationType="slide"
@@ -468,7 +466,7 @@ const styles = StyleSheet.create({
     color: "#4CAF50",
   },
   
-  // Modal styles
+
   modalContainer: {
     flex: 1,
     backgroundColor: "#fff",

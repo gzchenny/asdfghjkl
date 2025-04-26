@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Text,
   View,
@@ -7,6 +7,8 @@ import {
   Alert,
   TouchableOpacity,
   StyleSheet,
+  Animated,
+  Image,
 } from "react-native";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter, Stack } from "expo-router";
@@ -18,6 +20,26 @@ export default function SignIn() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Animation values
+  const logoFadeAnim = new Animated.Value(0); // For logo and text
+  const formFadeAnim = new Animated.Value(0); // For the sign-in form
+
+  useEffect(() => {
+    // Fade in the logo and text first
+    Animated.timing(logoFadeAnim, {
+      toValue: 1, // Final opacity value
+      duration: 1500, // Duration in milliseconds
+      useNativeDriver: true, // Use native driver for better performance
+    }).start(() => {
+      // After the logo fades in, fade in the form
+      Animated.timing(formFadeAnim, {
+        toValue: 1, // Final opacity value
+        duration: 1500, // Duration in milliseconds
+        useNativeDriver: true,
+      }).start();
+    });
+  }, []);
 
   const handleSignIn = async () => {
     try {
@@ -32,13 +54,12 @@ export default function SignIn() {
         const userData = userDoc.data();
 
         if (userData.profileCompleted) {
-          // Navigate directly to tabs instead of using onSignIn
           router.replace("/(tabs)");
         } else {
           router.replace("/auth/profile");
         }
       } else {
-        Alert.alert("Error", "User data not found in Firestore"); // Should not happen.
+        Alert.alert("Error", "User data not found in Firestore");
       }
     } catch (error: any) {
       if (error.code === "auth/user-not-found") {
@@ -52,9 +73,16 @@ export default function SignIn() {
   };
 
   return (
-    <>
+    <View style={styles.initialContainer}>
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={styles.container}>
+      {/* Logo and text fade-in */}
+      <Animated.View style={[styles.logoContainer, { opacity: logoFadeAnim }]}>
+        <Image source={require("../../assets/images/logo.png")} style={styles.logo} />
+        <Text style={styles.logoText}>crop</Text>
+      </Animated.View>
+
+      {/* Sign-in form fade-in */}
+      <Animated.View style={[styles.container, { opacity: formFadeAnim }]}>
         <Text style={styles.title}>Sign In</Text>
         <TextInput
           placeholder="Email"
@@ -73,7 +101,6 @@ export default function SignIn() {
           style={styles.input}
           secureTextEntry
         />
-        <Button title="Sign In" onPress={handleSignIn} color="#ffd33d" />
         <TouchableOpacity
           onPress={() => router.push("/auth/signUp")}
           style={styles.signUpLink}
@@ -82,24 +109,49 @@ export default function SignIn() {
             Don't have an account? Sign up!
           </Text>
         </TouchableOpacity>
-      </View>
-    </>
+      </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  initialContainer: {
+    backgroundColor: "#FFFFFF",
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#25292e",
-    padding: 20,
   },
+
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 40, // Space between logo and form
+  },
+
+  logo: {
+    width: 200,
+    height: 200,
+    marginBottom: 0,
+  },
+
+  logoText: {
+    fontSize: 100,
+    fontWeight: "700",
+    color: "#1E4035",
+    marginTop: 0,
+  },
+
+  container: {
+    width: "100%",
+    paddingHorizontal: 20,
+    alignItems: "center",
+  },
+
   title: {
-    color: "#fff",
+    color: "#25292e",
     fontSize: 24,
     marginBottom: 20,
   },
+
   input: {
     width: "100%",
     height: 40,
@@ -108,11 +160,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 10,
   },
+
   signUpLink: {
     marginTop: 20,
   },
+
   signUpText: {
-    color: "#ffd33d",
+    color: "#1E4035",
     textDecorationLine: "underline",
   },
 });

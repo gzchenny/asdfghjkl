@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useCart } from "../components/cartcontext";
+import { useCart } from "./components/cartcontext";
 
 export default function CartPage() {
   const { cart, removeFromCart, clearCart, checkout } = useCart();

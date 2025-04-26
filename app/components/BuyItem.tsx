@@ -2,120 +2,156 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
-  Button,
   StyleSheet,
-  Alert,
   TouchableOpacity,
 } from "react-native";
 
 interface BuyItemProps {
-  itemName: string;
-  itemCost: number;
-  onConfirm: (itemName: string, quantity: number, totalCost: number) => void;
+  productName: string;
+  farmName: string;
+  date?: string;
+  initialQuantity?: number;
+  onConfirm: (productName: string, quantity: number) => void;
+  onMessagePress?: () => void;
 }
 
 export default function BuyItem({
-  itemName,
-  itemCost,
+  productName,
+  farmName,
+  date,
+  initialQuantity = 1,
   onConfirm,
+  onMessagePress,
 }: BuyItemProps) {
-  const [quantity, setQuantity] = useState<number>(1);
+  const [quantity, setQuantity] = useState<number>(initialQuantity);
+  const formattedDate = date || "April 26, 2025";
 
   const handleConfirm = () => {
-    if (quantity <= 0) {
-      Alert.alert("Invalid Quantity", "Please enter a valid quantity.");
-      return;
-    }
-
-    const totalCost = quantity * itemCost;
-    onConfirm(itemName, quantity, totalCost);
+    if (quantity <= 0) return;
+    onConfirm(productName, quantity);
   };
 
   const increaseQuantity = () => setQuantity((prev) => prev + 1);
   const decreaseQuantity = () =>
     setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
-  const totalCost = quantity * itemCost; // Dynamically calculate total cost
-
   return (
     <View style={styles.container}>
-      <Text style={styles.itemName}>{itemName}</Text>
-      <Text style={styles.itemCost}>Cost per item: ${itemCost.toFixed(2)}</Text>
-      <View style={styles.quantityContainer}>
-        <TouchableOpacity
-          onPress={decreaseQuantity}
-          style={styles.quantityButton}
-        >
-          <Text style={styles.quantityButtonText}>-</Text>
-        </TouchableOpacity>
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={quantity.toString()}
-          onChangeText={(text) => setQuantity(Number(text))}
-        />
-        <TouchableOpacity
-          onPress={increaseQuantity}
-          style={styles.quantityButton}
-        >
-          <Text style={styles.quantityButtonText}>+</Text>
+      <Text style={styles.productName}>{productName}</Text>
+      
+      <View style={styles.farmRow}>
+        <Text style={styles.farmName}>{farmName}</Text>
+        <TouchableOpacity onPress={onMessagePress}>
+          <Text style={styles.messageButton}>Message</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.totalCost}>Total Cost: ${totalCost.toFixed(2)}</Text>
-      <Button title="Buy" onPress={handleConfirm} color="#ffd33d" />
+      
+      <Text style={styles.date}>{formattedDate}</Text>
+      
+      <View style={styles.actionRow}>
+        <View style={styles.quantityPill}>
+          <TouchableOpacity
+            onPress={decreaseQuantity}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.quantityControl}>-</Text>
+          </TouchableOpacity>
+          
+          <Text style={styles.quantity}>{quantity}</Text>
+          
+          <TouchableOpacity
+            onPress={increaseQuantity}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.quantityControl}>+</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <TouchableOpacity
+          style={styles.orderButton}
+          onPress={handleConfirm}
+        >
+          <Text style={styles.orderButtonText}>Order Again</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    marginBottom: 20,
-    backgroundColor: "#25292e",
-    borderRadius: 10,
-    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    marginBottom: 16,
+    padding: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  itemName: {
-    fontSize: 18,
-    color: "#fff",
-    marginBottom: 10,
+  productName: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: "#1c2f2e",
+    marginBottom: 8,
   },
-  itemCost: {
-    fontSize: 16,
-    color: "#ddd",
-    marginBottom: 10,
-  },
-  quantityContainer: {
+  farmRow: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 6,
   },
-  quantityButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: "#ffd33d",
-    justifyContent: "center",
+  farmName: {
+    fontSize: 15,
+    color: "#444",
+  },
+  messageButton: {
+    fontSize: 13,
+    color: "#234930",
+    fontWeight: "500",
+  },
+  date: {
+    fontSize: 13,
+    color: "#666",
+    marginBottom: 12,
+  },
+  actionRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    borderRadius: 5,
-    marginHorizontal: 5,
-  },
-  quantityButtonText: {
-    fontSize: 18,
-    color: "#25292e",
-    fontWeight: "bold",
-  },
-  input: {
-    width: 60,
-    height: 40,
-    backgroundColor: "#fff",
-    borderRadius: 5,
-    textAlign: "center",
-    fontSize: 16,
-  },
-  totalCost: {
-    fontSize: 18,
-    color: "#fff",
     marginTop: 10,
   },
-});
+  quantityPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#e6f1e8",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+  },
+  quantityControl: {
+    fontSize: 16,
+    color: "#234930",
+    fontWeight: "600",
+    paddingHorizontal: 5,
+  },
+  quantity: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#234930",
+    width: 25,
+    textAlign: "center",
+  },
+  orderButton: {
+    backgroundColor: "#234930",
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 6,
+  },
+  orderButtonText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 14,
+  }
+}); 

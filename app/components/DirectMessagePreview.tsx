@@ -1,4 +1,4 @@
-// NOTE: ADD MOST RECENT MESSAGE SORTING
+
 
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";

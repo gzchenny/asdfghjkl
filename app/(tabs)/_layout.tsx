@@ -14,7 +14,7 @@ import SignIn from "../auth/signIn";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
-import { CartProvider } from "../components/cartcontext"; // Import CartProvider
+import { CartProvider } from "../components/cartcontext";
 
 export default function AppLayout() {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -71,7 +71,7 @@ export default function AppLayout() {
   return (
     <CartProvider>
       {" "}
-      {/* Wrap your Tabs with CartProvider */}
+      {}
       <Tabs
         screenOptions={({ route }: { route: { name: string } }) => ({
           headerShown: true,
@@ -102,9 +102,6 @@ export default function AppLayout() {
                   ? "chatbubble-ellipses"
                   : "chatbubble-ellipses-outline";
                 break;
-              case "settings":
-                iconName = focused ? "settings" : "settings-outline";
-                break;
               default:
                 iconName = "ellipse";
             }
@@ -115,8 +112,6 @@ export default function AppLayout() {
               ? "Buy"
               : route.name === "sellPage"
               ? "Sell"
-              : route.name === "settings"
-              ? "Settings"
               : route.name === "messages"
               ? "Messages"
               : route.name === "index"
@@ -128,7 +123,6 @@ export default function AppLayout() {
         <Tabs.Screen name="buyPage" />
         <Tabs.Screen name="sellPage" />
         <Tabs.Screen name="messages" />
-        <Tabs.Screen name="settings" />
       </Tabs>
     </CartProvider>
   );

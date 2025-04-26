@@ -1,329 +1,3 @@
-// import React, { useEffect, useState } from "react";
-// import {
-//   Alert,
-//   View,
-//   Text,
-//   FlatList,
-//   StyleSheet,
-//   ActivityIndicator,
-//   Image,
-//   TouchableOpacity,
-// } from "react-native";
-// import {
-//   collection,
-//   getDocs,
-//   doc,
-//   getDoc,
-//   query,
-//   where,
-//   setDoc,
-//   updateDoc,
-//   arrayUnion,
-// } from "firebase/firestore";
-// import { db } from "../../firebase/firebase";
-// import BuyItem from "../components/BuyItem";
-// import { useRouter } from "expo-router";
-// import { getAuth } from "firebase/auth";
-// import { Ionicons } from "@expo/vector-icons";
-// import { useCart } from "../components/cartcontext"; // ✅ Import cart context
-
-// interface Crop {
-//   id: string;
-//   sellerID: string;
-//   itemName: string;
-//   costPerWeight: number;
-//   quantity: number;
-//   harvestDate: string;
-//   imageURL?: string;
-//   sellerFirstName?: string;
-//   sellerLastName?: string;
-// }
-
-// export default function BuyPage() {
-//   const [crops, setCrops] = useState<Crop[]>([]);
-//   const [loading, setLoading] = useState(true);
-//   const router = useRouter();
-//   const auth = getAuth();
-
-//   const { cart, addToCart } = useCart(); // ✅ Use cart context
-
-//   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-//   const totalPrice = cart.reduce(
-//     (sum, item) => sum + item.quantity * item.price,
-//     0
-//   );
-
-//   const handleMessageSeller = async (sellerId: string) => {
-//     const currentUser = auth.currentUser;
-//     if (!currentUser) {
-//       Alert.alert("Error", "You need to be logged in to message sellers");
-//       return;
-//     }
-
-//     try {
-//       const chatsRef = collection(db, "chats");
-//       const q = query(
-//         chatsRef,
-//         where("userIds", "array-contains", currentUser.uid)
-//       );
-//       const querySnapshot = await getDocs(q);
-
-//       let existingChatId: string | null = null;
-//       querySnapshot.forEach((doc) => {
-//         const data = doc.data();
-//         if (data.userIds && data.userIds.includes(sellerId)) {
-//           existingChatId = doc.id;
-//         }
-//       });
-
-//       let chatId: string;
-//       if (existingChatId) {
-//         chatId = existingChatId;
-//       } else {
-//         const newChatRef = doc(collection(db, "chats"));
-//         chatId = newChatRef.id;
-
-//         await setDoc(newChatRef, {
-//           userIds: [currentUser.uid, sellerId],
-//           createdAt: new Date(),
-//         });
-
-//         await updateDoc(doc(db, "users", currentUser.uid), {
-//           chats: arrayUnion(chatId),
-//         });
-
-//         await updateDoc(doc(db, "users", sellerId), {
-//           chats: arrayUnion(chatId),
-//         });
-//       }
-
-//       router.push({
-//         pathname: "/(tabs)/messages",
-//         params: { chatId, otherUserId: sellerId },
-//       });
-//     } catch (error) {
-//       console.error("Error handling message seller:", error);
-//       Alert.alert("Error", "Could not open chat with seller");
-//     }
-//   };
-
-//   useEffect(() => {
-//     const fetchCrops = async () => {
-//       try {
-//         const snapshot = await getDocs(collection(db, "crops"));
-
-//         const cropList: Crop[] = await Promise.all(
-//           snapshot.docs.map(async (docSnapshot) => {
-//             const data = docSnapshot.data();
-//             const cropData: Crop = {
-//               id: docSnapshot.id,
-//               sellerID: data.sellerID,
-//               itemName: data.itemName,
-//               costPerWeight: parseFloat(data.costPerWeight),
-//               quantity: parseFloat(data.quantity),
-//               harvestDate: data.harvestDate,
-//               imageURL: data.imageURL || null,
-//             };
-
-//             if (data.sellerID) {
-//               try {
-//                 const userDocRef = doc(db, "users", data.sellerID);
-//                 const userDoc = await getDoc(userDocRef);
-
-//                 if (userDoc.exists()) {
-//                   const userData = userDoc.data();
-//                   cropData.sellerFirstName = userData.firstName || "";
-//                   cropData.sellerLastName = userData.lastName || "";
-//                 }
-//               } catch (error) {
-//                 console.error(
-//                   `Error fetching user data for seller ${data.sellerID}:`,
-//                   error
-//                 );
-//               }
-//             }
-
-//             return cropData;
-//           })
-//         );
-
-//         setCrops(cropList);
-//       } catch (error) {
-//         console.error("Error fetching crops:", error);
-//         Alert.alert("Error", "Failed to load crop data.");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchCrops();
-//   }, []);
-
-//   const renderItem = ({ item }: { item: Crop }) => (
-//     <View style={styles.card}>
-//       <Image
-//         source={
-//           item.imageURL
-//             ? { uri: item.imageURL }
-//             : require("../../assets/images/react-logo.png")
-//         }
-//         style={styles.image}
-//       />
-//       <View style={styles.info}>
-//         <Text style={styles.name}>
-//           {item.itemName} (Harvested: {item.harvestDate})
-//         </Text>
-//         <Text style={styles.details}>
-//           ${item.costPerWeight.toFixed(2)} • {item.quantity}kg
-//         </Text>
-//         <Text style={styles.location}>
-//           Seller: {item.sellerFirstName ?? "?"} {item.sellerLastName ?? "?"}
-//         </Text>
-//         <Text style={styles.location}>ID: {item.sellerID}</Text>
-
-//         <View style={styles.actionRow}>
-//           <BuyItem
-//             itemName={item.itemName}
-//             itemCost={item.costPerWeight}
-//             onConfirm={(itemName, quantity, totalCost) =>
-//               addToCart({
-//                 id: item.itemName,
-//                 itemName,
-//                 price: item.costPerWeight,
-//                 quantity,
-//               })
-//             }
-//           />
-
-//           <TouchableOpacity
-//             style={styles.messageButton}
-//             onPress={() => handleMessageSeller(item.sellerID)}
-//           >
-//             <Ionicons name="chatbubble-outline" size={16} color="white" />
-//             <Text style={styles.messageButtonText}>Message Seller</Text>
-//           </TouchableOpacity>
-//         </View>
-//       </View>
-//     </View>
-//   );
-
-//   if (loading) {
-//     return (
-//       <View style={styles.center}>
-//         <ActivityIndicator size="large" color="#00cc99" />
-//       </View>
-//     );
-//   }
-
-//   return (
-//     <View style={{ flex: 1 }}>
-//       <FlatList
-//         data={crops}
-//         keyExtractor={(item) => item.id}
-//         renderItem={renderItem}
-//         contentContainerStyle={{ padding: 12, paddingBottom: 80 }}
-//       />
-
-//       {cart.length > 0 && (
-//         <View style={styles.cartStrip}>
-//           <TouchableOpacity
-//             style={styles.cartButton}
-//             onPress={() => router.push("/(tabs)/cart")}
-//           >
-//             <Text style={styles.cartText}>
-//               {totalItems} {totalItems === 1 ? "item" : "items"} • $
-//               {totalPrice.toFixed(2)}
-//             </Text>
-//             <Ionicons name="chevron-forward" size={24} color="white" />
-//           </TouchableOpacity>
-//         </View>
-//       )}
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   center: {
-//     flex: 1,
-//     justifyContent: "center",
-//     alignItems: "center",
-//   },
-//   card: {
-//     flexDirection: "row",
-//     backgroundColor: "#fff",
-//     marginBottom: 15,
-//     borderRadius: 10,
-//     overflow: "hidden",
-//     elevation: 3,
-//   },
-//   image: {
-//     width: 90,
-//     height: 90,
-//     backgroundColor: "#eee",
-//   },
-//   info: {
-//     flex: 1,
-//     padding: 10,
-//     justifyContent: "space-between",
-//   },
-//   name: {
-//     fontSize: 16,
-//     fontWeight: "bold",
-//   },
-//   details: {
-//     fontSize: 14,
-//     color: "#444",
-//   },
-//   location: {
-//     fontSize: 12,
-//     color: "#888",
-//   },
-//   actionRow: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     alignItems: "center",
-//     marginTop: 8,
-//   },
-//   messageButton: {
-//     backgroundColor: "#3498db",
-//     flexDirection: "row",
-//     alignItems: "center",
-//     paddingVertical: 6,
-//     paddingHorizontal: 12,
-//     borderRadius: 4,
-//   },
-//   messageButtonText: {
-//     color: "white",
-//     marginLeft: 5,
-//     fontSize: 12,
-//     fontWeight: "500",
-//   },
-//   cartStrip: {
-//     position: "absolute",
-//     bottom: 0,
-//     left: 0,
-//     right: 0,
-//     backgroundColor: "#1E4035",
-//     paddingVertical: 12,
-//     paddingHorizontal: 20,
-//     alignItems: "center",
-//     justifyContent: "center",
-//     elevation: 10,
-//     zIndex: 10,
-//   },
-//   cartButton: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     justifyContent: "space-between",
-//     width: "100%",
-//   },
-//   cartText: {
-//     color: "white",
-//     fontSize: 16,
-//     fontWeight: "bold",
-//   },
-// });
-
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -334,7 +8,7 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  FlatList,
+  FlatList
 } from "react-native";
 import {
   collection,
@@ -356,6 +30,24 @@ import { useCart } from "../components/cartcontext";
 import DropDownPicker from "react-native-dropdown-picker";
 import FilterChipsBar from "../components/filterChipsBar";
 
+const API_URL = "http://10.13.241.155:5000/predict";
+
+async function fetchPredictedPrice(itemName: string): Promise<number | null> {
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ features: itemName }),
+    });
+    const data = await response.json();
+    return data.prediction;
+  } catch (error) {
+    console.error("Error fetching prediction:", error);
+    return null;
+  }
+}
+
+
 interface Crop {
   id: string;
   sellerID: string;
@@ -366,7 +58,10 @@ interface Crop {
   imageURL?: string;
   sellerFirstName?: string;
   sellerLastName?: string;
+  predictedPrice?: number; 
 }
+
+
 
 export default function BuyPage() {
   const [crops, setCrops] = useState<Crop[]>([]);
@@ -383,7 +78,6 @@ export default function BuyPage() {
     0
   );
 
-  // Filter state
   const [filterType, setFilterType] = useState<string | null>(null);
   const [selectedCrop, setSelectedCrop] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
@@ -476,6 +170,16 @@ export default function BuyPage() {
               imageURL: data.imageURL || null,
             };
 
+            // Fetch predicted price from API
+            try {
+              const predictedPrice = await fetchPredictedPrice(data.itemName);
+              if (predictedPrice !== null) {
+                cropData.predictedPrice = predictedPrice;
+              }
+            } catch (error) {
+              console.error(`Error fetching predicted price for ${data.itemName}:`, error);
+            }
+
             if (data.sellerID) {
               try {
                 const userDocRef = doc(db, "users", data.sellerID);
@@ -557,14 +261,17 @@ export default function BuyPage() {
         break;
       case "location":
         setDropdownItems([
-          { label: "ACT", value: "act" },
-          { label: "NSW", value: "nsw" },
-          { label: "NT", value: "nt" },
-          { label: "QLD", value: "qld" },
-          { label: "SA", value: "sa" },
-          { label: "TAS", value: "tas" },
-          { label: "VIC", value: "vic" },
-          { label: "WA", value: "wa" },
+          { label: "Carlton", value: "carlton" },
+          { label: "Melbourne", value: "melbourne" },
+          { label: "Parkville", value: "parkville" },
+          // { label: "ACT", value: "act" },
+          // { label: "NSW", value: "nsw" },
+          // { label: "NT", value: "nt" },
+          // { label: "QLD", value: "qld" },
+          // { label: "SA", value: "sa" },
+          // { label: "TAS", value: "tas" },
+          // { label: "VIC", value: "vic" },
+          // { label: "WA", value: "wa" },
         ]);
         break;
       case "price":
@@ -613,15 +320,27 @@ export default function BuyPage() {
           style={styles.image}
         />
         <View style={styles.info}>
-          <Text style={styles.name}>{item.itemName}</Text>
+          <View style={styles.headerRow}>
+            <Text style={styles.name}>{item.itemName}</Text>
+            <Text style={styles.price}>${item.costPerWeight.toFixed(2)}/kg</Text>
+            {item.predictedPrice !== undefined && (
+  <Text style={{ fontSize: 13, color: "#666" }}>
+    Predicted Market Price: ${item.predictedPrice.toFixed(2)}
+  </Text>
+)}
+
+          </View>
+          
           <Text style={styles.harvestDate}>Harvested: {item.harvestDate}</Text>
-          <Text style={styles.details}>
-            ${item.costPerWeight.toFixed(2)} • {item.quantity}kg
-          </Text>
-          <Text style={styles.seller}>
-            Seller: {item.sellerFirstName ?? ""} {item.sellerLastName ?? ""}
-            {!item.sellerFirstName && !item.sellerLastName && item.sellerID}
-          </Text>
+          <Text style={styles.quantityText}>Available: {item.quantity}kg</Text>
+          
+          <View style={styles.sellerRow}>
+            <Ionicons name="person-outline" size={14} color="#666" />
+            <Text style={styles.seller}>
+              {item.sellerFirstName ?? ""} {item.sellerLastName ?? ""}
+              {!item.sellerFirstName && !item.sellerLastName && item.sellerID}
+            </Text>
+          </View>
 
           <View style={styles.actionRow}>
             <BuyItem
@@ -642,7 +361,7 @@ export default function BuyPage() {
               onPress={() => handleMessageSeller(item.sellerID)}
             >
               <Ionicons name="chatbubble-outline" size={16} color="white" />
-              <Text style={styles.messageButtonText}>Message Seller</Text>
+              <Text style={styles.messageButtonText}>Message</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -653,111 +372,120 @@ export default function BuyPage() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#00cc99" />
+        <ActivityIndicator size="large" color="#1E4035" />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <FilterChipsBar onFilterPress={handleFilterPress} />
+    <View style={styles.container}>
+      <ScrollView
+        style={styles.outerScroll}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.outerContent}
+      >
+        <Text style={styles.pageTitle}>Market Products</Text>
+        
+        <FilterChipsBar onFilterPress={handleFilterPress} />
 
-      {activeFiltersCount > 0 && (
-        <View style={styles.filterControlsRow}>
-          <TouchableOpacity onPress={resetFilters} style={styles.resetButton}>
-            <Text style={{ fontWeight: "bold" }}>Reset Filters</Text>
-          </TouchableOpacity>
+        {activeFiltersCount > 0 && (
+          <View style={styles.filterControlsRow}>
+            <TouchableOpacity onPress={resetFilters} style={styles.resetButton}>
+              <Text style={styles.resetButtonText}>Reset Filters</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => setShowFilterSummary((prev) => !prev)}
-            style={styles.filterSummaryButton}
-          >
-            <Text style={{ color: "#25292e", fontWeight: "500" }}>
-              {activeFiltersCount} Filter{activeFiltersCount > 1 ? "s" : ""}{" "}
-              Applied ⌄
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {showFilterSummary && (
-        <View style={styles.filterSummaryContainer}>
-          {selectedCrop && (
-            <Text
-              style={styles.filterTag}
-              onPress={() => setSelectedCrop(null)}
+            <TouchableOpacity
+              onPress={() => setShowFilterSummary((prev) => !prev)}
+              style={styles.filterSummaryButton}
             >
-              Crop: {selectedCrop} ✕
-            </Text>
-          )}
-          {selectedLocation && (
-            <Text
-              style={styles.filterTag}
-              onPress={() => setSelectedLocation(null)}
-            >
-              Location: {selectedLocation} ✕
-            </Text>
-          )}
-          {selectedPrice && (
-            <Text
-              style={styles.filterTag}
-              onPress={() => setSelectedPrice(null)}
-            >
-              Price: {selectedPrice} ✕
-            </Text>
-          )}
-        </View>
-      )}
+              <Text style={styles.filterSummaryText}>
+                {activeFiltersCount} Filter{activeFiltersCount > 1 ? "s" : ""} Applied {showFilterSummary ? "▲" : "▼"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-      {filterType && (
-        <View style={styles.filterDropdownContainer}>
-          <Text style={{ fontWeight: "bold", marginBottom: 6 }}>
-            Filter by {filterType}:
-          </Text>
-          <DropDownPicker
-            open={openDropdown}
-            value={dropdownValue}
-            items={dropdownItems}
-            setOpen={setOpenDropdown}
-            setValue={setDropdownValue}
-            setItems={setDropdownItems}
-            placeholder={`Select ${filterType}`}
-            searchable={filterType === "crop"}
-            zIndex={9999}
-            zIndexInverse={1000}
-          />
-          <TouchableOpacity
-            style={styles.applyFilterButton}
-            onPress={() => {
-              if (filterType === "crop") {
-                applyFilter({ crop: dropdownValue });
-              } else if (filterType === "location") {
-                applyFilter({ location: dropdownValue });
-              } else if (filterType === "price") {
-                applyFilter({ price: dropdownValue });
-              }
-              setFilterType(null);
-            }}
-          >
-            <Text style={{ fontWeight: "bold", color: "#000" }}>
-              Apply Filter
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+        {showFilterSummary && (
+          <View style={styles.filterSummaryContainer}>
+            {selectedCrop && (
+              <Text
+                style={styles.filterTag}
+                onPress={() => setSelectedCrop(null)}
+              >
+                Crop: {selectedCrop} ✕
+              </Text>
+            )}
+            {selectedLocation && (
+              <Text
+                style={styles.filterTag}
+                onPress={() => setSelectedLocation(null)}
+              >
+                Location: {selectedLocation} ✕
+              </Text>
+            )}
+            {selectedPrice && (
+              <Text
+                style={styles.filterTag}
+                onPress={() => setSelectedPrice(null)}
+              >
+                Price: {selectedPrice} ✕
+              </Text>
+            )}
+          </View>
+        )}
 
-      <FlatList
-        data={activeFiltersCount > 0 ? filteredCrops : crops}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={{ padding: 12, paddingBottom: 80 }}
-      />
+        {filterType && (
+          <View style={styles.filterDropdownContainer}>
+            <Text style={styles.filterDropdownTitle}>
+              Filter by {filterType}:
+            </Text>
+            <DropDownPicker
+              open={openDropdown}
+              value={dropdownValue}
+              items={dropdownItems}
+              setOpen={setOpenDropdown}
+              setValue={setDropdownValue}
+              setItems={setDropdownItems}
+              placeholder={`Select ${filterType}`}
+              searchable={filterType === "crop"}
+              zIndex={9999}
+              zIndexInverse={1000}
+              style={styles.dropdown}
+              dropDownContainerStyle={styles.dropdownContainer}
+              placeholderStyle={styles.dropdownPlaceholder}
+            />
+            <TouchableOpacity
+              style={styles.applyFilterButton}
+              onPress={() => {
+                if (filterType === "crop") {
+                  applyFilter({ crop: dropdownValue });
+                } else if (filterType === "location") {
+                  applyFilter({ location: dropdownValue });
+                } else if (filterType === "price") {
+                  applyFilter({ price: dropdownValue });
+                }
+                setFilterType(null);
+              }}
+            >
+              <Text style={styles.applyFilterText}>Apply Filter</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <View style={styles.productsWrapper}>
+          {(activeFiltersCount > 0 ? filteredCrops : crops).map((item) => (
+            <View key={item.id}>
+              {renderItem({ item })}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
 
       {cart.length > 0 && (
         <View style={styles.cartStrip}>
           <TouchableOpacity
             style={styles.cartButton}
-            onPress={() => router.push("/(tabs)/cart")}
+            onPress={() => router.push("/cart")}
           >
             <Text style={styles.cartText}>
               {totalItems} {totalItems === 1 ? "item" : "items"} • $
@@ -772,20 +500,44 @@ export default function BuyPage() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F8F8F8",
+  },
+  outerScroll: {
+    flex: 1,
+    width: "100%",
+  },
+  outerContent: {
+    padding: 15,
+    paddingBottom: 100, // Extra padding for cart strip
+  },
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: "600",
+    color: "#1E4035",
+    marginBottom: 16,
+    marginTop: 10,
+    paddingHorizontal: 5,
+  },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#F8F8F8",
+  },
+  productsWrapper: {
+    marginTop: 10,
   },
   card: {
     flexDirection: "row",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     marginBottom: 16,
-    padding: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
+    padding: 14,
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -793,48 +545,65 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 10,
-    marginRight: 12,
-    backgroundColor: "#f0f0f0",
+    marginRight: 14,
+    backgroundColor: "#F0F0F0",
   },
   info: {
     flex: 1,
     justifyContent: "space-between",
   },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
   name: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
+    color: "#333333",
+    flex: 1,
+  },
+  price: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1E4035",
   },
   harvestDate: {
     fontSize: 13,
-    color: "#777",
-    marginTop: 2,
+    color: "#666666",
+    marginTop: 4,
   },
-  details: {
+  quantityText: {
     fontSize: 14,
-    color: "#444",
+    color: "#444444",
     marginVertical: 4,
+  },
+  sellerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
   },
   seller: {
     fontSize: 12,
-    color: "#999",
+    color: "#666666",
+    marginLeft: 4,
   },
   actionRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 8,
+    marginTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#eee",
-    paddingTop: 8,
+    borderTopColor: "#FFFFFF",
+    paddingTop: 10,
   },
   messageButton: {
-    backgroundColor: "#3498db",
+    backgroundColor: "#3498DB",
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 4,
+    borderRadius: 6,
   },
   messageButtonText: {
     color: "white",
@@ -848,12 +617,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: "#1E4035",
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 10,
-    zIndex: 10,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    elevation: 6,
   },
   cartButton: {
     flexDirection: "row",
@@ -864,56 +632,92 @@ const styles = StyleSheet.create({
   cartText: {
     color: "white",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   filterControlsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 10,
-    paddingTop: 10,
+    paddingHorizontal: 5,
+    paddingVertical: 10,
+    marginTop: 5,
   },
   resetButton: {
-    backgroundColor: "#e0e0e0",
+    backgroundColor: "#E6F4EA",
     padding: 10,
     borderRadius: 6,
     alignItems: "center",
     flex: 1,
     marginRight: 10,
   },
+  resetButtonText: {
+    fontWeight: "600",
+    color: "#1E4035",
+  },
   filterSummaryButton: {
-    backgroundColor: "#ffd33d",
+    backgroundColor: "#BFDCCF",
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 6,
+  },
+  filterSummaryText: {
+    color: "#1E4035",
+    fontWeight: "600",
   },
   filterSummaryContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     padding: 10,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#F5F5F5",
+    borderRadius: 8,
+    marginBottom: 10,
   },
   filterTag: {
-    backgroundColor: "#fff",
-    padding: 6,
-    borderRadius: 8,
-    margin: 2,
+    backgroundColor: "#FFFFFF",
+    padding: 8,
+    borderRadius: 16,
+    margin: 4,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#E0E0E0",
+    fontSize: 13,
   },
   filterDropdownContainer: {
-    padding: 10,
-    backgroundColor: "#fffbe6",
-    borderBottomWidth: 1,
-    borderColor: "#ccc",
-    marginBottom: 10,
+    padding: 15,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    marginBottom: 15,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
     zIndex: 9999,
   },
+  filterDropdownTitle: {
+    fontWeight: "600",
+    marginBottom: 10,
+    fontSize: 16,
+    color: "#1E4035",
+  },
+  dropdown: {
+    borderColor: "#E0E0E0",
+    borderRadius: 6,
+  },
+  dropdownContainer: {
+    borderColor: "#E0E0E0",
+  },
+  dropdownPlaceholder: {
+    color: "#666666",
+  },
   applyFilterButton: {
-    backgroundColor: "#ffd33d",
-    padding: 10,
+    backgroundColor: "#1E4035",
+    padding: 12,
     borderRadius: 6,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 15,
+  },
+  applyFilterText: {
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
 });

@@ -1,6 +1,4 @@
-// sales summary
-// stock review
-// pending orders
+
 
 import React, { useEffect, useRef, useState } from "react";
 import {
