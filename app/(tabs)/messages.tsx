@@ -47,7 +47,10 @@ export default function ChatScreen() {
   };
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
 
     const fetchChats = async () => {
       try {
@@ -57,38 +60,40 @@ export default function ChatScreen() {
           where("userIds", "array-contains", currentUser.uid)
         );
 
-        const unsubscribe = onSnapshot(q, async (querySnapshot) => {
-          const chatData: any[] = [];
+        const unsubscribe = onSnapshot(
+          q,
+          (querySnapshot) => {
+            const chatData: any[] = [];
 
-          for (const doc of querySnapshot.docs) {
-            const chatId = doc.id;
-            const data = doc.data();
+            querySnapshot.docs.forEach((doc) => {
+              const chatId = doc.id;
+              const data = doc.data();
 
-            const otherUserId = data.userIds.find(
-              (id: string) => id !== currentUser.uid
-            );
+              const otherUserId = data.userIds.find(
+                (id: string) => id !== currentUser.uid
+              );
 
-            const messagesRef = collection(db, "chats", chatId, "messages");
-            const messagesQuery = query(messagesRef);
-            const messagesSnapshot = await getDocs(messagesQuery);
-
-            const hasMessages = !messagesSnapshot.empty;
-
-            chatData.push({
-              id: chatId,
-              otherUserId,
-              hasMessages,
-              ...data,
+              chatData.push({
+                id: chatId,
+                otherUserId,
+                ...data,
+              });
             });
-          }
 
-          setChats(chatData);
-          setLoading(false);
-        });
+            setChats(chatData);
+            setLoading(false);
+          },
+          (error) => {
+            console.error("Error in chat snapshot:", error);
+            setLoading(false);
+          }
+        );
 
         return unsubscribe;
       } catch (error) {
+        console.error("Error setting up chat listener:", error);
         setLoading(false);
+        return () => {};
       }
     };
 
