@@ -1,6 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, FlatList} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 
@@ -35,6 +33,30 @@ export default function BuyerDashboard() {
           items: [{ label: '5 lb Bananas' }, { label: '1 dz Eggs' }, { label: '3 lb Onions' }],
         },
       ];
+
+    const recommendedProducts = [
+    {
+        name: 'Heirloom Tomatoes',
+        price: '3.99',
+        image: '../../assets/images/tomato.jpg',
+    },
+    {
+        name: 'Apples',
+        price: '2.49',
+        image: '../../assets/images/aple.jpg',
+    },
+    {
+        name: 'Avocados',
+        price: '1.99',
+        image: '../../assets/images/vododo.jpg',
+    },
+    {
+        name: 'Broccoli',
+        price: '4.50',
+        image: '../../assets/images/brocs.jpg',
+    },
+    ];
+      
       
     const CARD_HEIGHT = 135;
     const WRAPPER_HEIGHT = 450;
@@ -139,15 +161,27 @@ export default function BuyerDashboard() {
                 </View>
 
                 {/* Recommendations Section */}
-                <View style={styles.section}>
+                <View style={styles.recommendationsSection}>
                     <Text style={styles.sectionTitle}>Recommendations</Text>
+
                     <ScrollView
-                        horizontal={true}
+                        horizontal
                         showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.recommendationsContainer}
                     >
-                        
+                        {recommendedProducts.map((product, index) => (
+                        <View key={index} style={styles.recommendationCard}>
+                            <Image
+                            source={{ uri: product.image }}
+                            style={styles.productImage}
+                            resizeMode="cover"
+                            />
+                            <Text style={styles.productName}>{product.name}</Text>
+                            <Text style={styles.productPrice}>${product.price}</Text>
+                        </View>
+                        ))}
                     </ScrollView>
-                </View> 
+                </View>
             </ScrollView>
         </View>
     );
@@ -381,15 +415,47 @@ const styles = StyleSheet.create({
         marginVertical: 5,
     },
 
-    recommendationContainer: {
-        paddingHorizontal: 10,
+    recommendationsSection: {
+        marginTop: 16,
+        width: '100%',
     },
-
+    
+    recommendationsContainer: {
+        paddingHorizontal: 12,
+    },
+    
     recommendationCard: {
         width: 150,
-        height: 180,
-
+        marginRight: 12,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
+        overflow: 'hidden',
+        shadowColor: '#000000',
+        shadowOffset: { width: 3, height: 6 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
+    
+    productImage: {
+        width: '100%',
+        height: 100,
+    },
+    
+    productName: {
+        fontSize: 14,
+        fontWeight: '600',
+        paddingHorizontal: 8,
+        marginTop: 6,
+        color: '#1E4035',
+    },
+    
+    productPrice: {
+        fontSize: 13,
+        color: '#666',
+        paddingHorizontal: 8,
+        marginTop: 2,
+    },
+      
 });
   
 

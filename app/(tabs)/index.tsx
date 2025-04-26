@@ -1,10 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext, createContext } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, Animated } from "react-native";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 import BuyItem from "../components/BuyItem";
 import BuyerDashboard from "../components/buyerdash";
+
+export type UserData = {
+  firstName?: string;
+  lastName?: string;
+  gender?: string;
+  location?: string;
+} | null;
+
+const UserContext = createContext<UserData>(null);
+
+export function useUser() {
+  return useContext(UserContext);
+}
 
 export default function Index() {
   const [loading, setLoading] = useState(true);
@@ -78,7 +91,7 @@ export default function Index() {
       </View>
       <BuyerDashboard />
     </View>
-  );S
+  );
 }
 
 const styles = StyleSheet.create({
@@ -104,11 +117,13 @@ const styles = StyleSheet.create({
   },
   subText: {
     color: '#1E4035',
-    fontSize: 26,
+    fontSize: 28,
     marginBottom: 20,
+    fontWeight: '500',
   },
 
   content: {
     alignSelf: 'stretch',
   },
 });
+

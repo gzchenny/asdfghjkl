@@ -9,12 +9,14 @@ import {
   ScrollView,
   Pressable,
   Platform,
+  Image,
 } from "react-native";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 import { getAuth } from "firebase/auth";
 import DropDownPicker from "react-native-dropdown-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import SellerDashboard from "../components/sellerdash";
 
 export default function SellPage() {
   const auth = getAuth();
@@ -53,7 +55,9 @@ export default function SellPage() {
   };
 
   const handleSearchText = (text: string) => {
-    const exists = cropOptions.some((item) => item.label.toLowerCase() === text.toLowerCase());
+    const exists = cropOptions.some(
+      (item) => item.label.toLowerCase() === text.trim().toLowerCase()
+    );
     if (!exists && text.trim()) {
       setCropOptions((prev) => [{ label: text, value: text }, ...prev]);
     }
@@ -93,120 +97,121 @@ export default function SellPage() {
   };
 
   return (
-    <>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
-        <Text style={styles.heading}>List Your Crop</Text>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
+      <SellerDashboard />
+      <Text style={styles.heading}>List Your Crop</Text>
 
-        {showValidationError && (
-          <Text style={styles.requiredNote}>* All fields are required (except image)</Text>
-        )}
+      {showValidationError && (
+        <Text style={styles.requiredNote}>* All fields are required (except image)</Text>
+      )}
 
-        <View style={[styles.dropdownWrapper, styles.field]}>
-          <DropDownPicker
-            open={open}
-            setOpen={setOpen}
-            value={value}
-            setValue={setValue}
-            items={cropOptions}
-            setItems={setCropOptions}
-            onChangeValue={(val) => handleChange("itemName", val ?? "")}
-            searchable
-            onChangeSearchText={handleSearchText}
-            placeholder="Select or type crop name... *"
-            style={styles.dropdown}
-            dropDownContainerStyle={styles.dropdownContainer}
-            listMode="SCROLLVIEW"
-          />
-        </View>
+      <View style={[styles.dropdownWrapper, styles.field]}>
+        <DropDownPicker
+          open={open}
+          setOpen={setOpen}
+          value={value}
+          setValue={setValue}
+          items={cropOptions}
+          setItems={setCropOptions}
+          onChangeValue={(val) => handleChange("itemName", val ?? "")}
+          searchable
+          onChangeSearchText={handleSearchText}
+          placeholder="Select or type crop name... *"
+          style={styles.dropdown}
+          dropDownContainerStyle={styles.dropdownContainer}
+          listMode="SCROLLVIEW"
+        />
+      </View>
 
-        <View style={styles.field}>
-          <TextInput
-            placeholder="Cost per Weight ($/kg) *"
-            placeholderTextColor="#000000"
-            value={formData.costPerWeight}
-            onChangeText={(text) => handleChange("costPerWeight", text)}
-            style={styles.input}
-            keyboardType="numeric"
-          />
-        </View>
+      <View style={styles.field}>
+        <TextInput
+          placeholder="Cost per Weight ($/kg) *"
+          placeholderTextColor="#000000"
+          value={formData.costPerWeight}
+          onChangeText={(text) => handleChange("costPerWeight", text)}
+          style={styles.input}
+          keyboardType="numeric"
+        />
+      </View>
 
-        <View style={styles.field}>
-          <TextInput
-            placeholder="Quantity (kg) *"
-            placeholderTextColor="#000000"
-            value={formData.quantity}
-            onChangeText={(text) => handleChange("quantity", text)}
-            style={styles.input}
-            keyboardType="numeric"
-          />
-        </View>
+      <View style={styles.field}>
+        <TextInput
+          placeholder="Quantity (kg) *"
+          placeholderTextColor="#000000"
+          value={formData.quantity}
+          onChangeText={(text) => handleChange("quantity", text)}
+          style={styles.input}
+          keyboardType="numeric"
+        />
+      </View>
 
-        <View style={styles.field}>
-          <Pressable
-            onPress={() => {
-              setTempSelectedDate(
-                formData.harvestDate ? new Date(formData.harvestDate) : new Date()
-              );
-              setShowDatePicker(true);
-            }}
-            style={[styles.input, styles.dateField]}
-          >
-            <Text>{formData.harvestDate || "Select Harvest Date"}</Text>
-          </Pressable>
-        </View>
+      <View style={styles.field}>
+        <Pressable
+          onPress={() => {
+            setTempSelectedDate(
+              formData.harvestDate ? new Date(formData.harvestDate) : new Date()
+            );
+            setShowDatePicker(true);
+          }}
+          style={[styles.input, styles.dateField]}
+        >
+          <Text>{formData.harvestDate || "Select Harvest Date"}</Text>
+        </Pressable>
+      </View>
 
-        <View style={styles.field}>
-          <TextInput
-            placeholder="Image URL (optional)"
-            placeholderTextColor="#000000"
-            value={formData.imageUrl}
-            onChangeText={(text) => handleChange("imageUrl", text)}
-            style={styles.input}
-          />
-        </View>
+      <View style={styles.field}>
+        <TextInput
+          placeholder="Image URL (optional)"
+          placeholderTextColor="#000000"
+          value={formData.imageUrl}
+          onChangeText={(text) => handleChange("imageUrl", text)}
+          style={styles.input}
+        />
+      </View>
 
-        <View style={{ marginTop: 20 }}>
-          <Button title="Submit Crop" onPress={handleSubmit} color="#ffd33d" />
-        </View>
-      </ScrollView>
+      <View style={{ marginTop: 20 }}>
+        <Button title="Submit Crop" onPress={handleSubmit} color="#ffd33d" />
+      </View>
 
       {showDatePicker && (
-        <>
+        <View style={{ marginTop: 20 }}>
           <DateTimePicker
             mode="date"
             display={Platform.OS === "ios" ? "spinner" : "calendar"}
             value={tempSelectedDate}
-            textColor="#000"
             onChange={(event, selectedDate) => {
               if (event.type === "set" && selectedDate) {
-                setTempSelectedDate(selectedDate);
-              } else {
-                setShowDatePicker(false);
+                const formatted = selectedDate.toISOString().split("T")[0];
+                handleChange("harvestDate", formatted);
               }
+              setShowDatePicker(false);
             }}
           />
-
           <View style={{ alignItems: "center", marginTop: 10 }}>
             <Button
               title="Confirm Date"
               onPress={() => {
-                const formatted = tempSelectedDate.toISOString().split("T")[0];
+                const formatted = tempSelectedDate
+                  ? tempSelectedDate.toISOString().split("T")[0]
+                  : new Date().toISOString().split("T")[0];
                 handleChange("harvestDate", formatted);
                 setShowDatePicker(false);
               }}
               color="#4CAF50"
             />
           </View>
-        </>
+        </View>
       )}
-    </>
+    </ScrollView>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: "#f4f4f4",
+    backgroundColor: "#F5F5F5",
   },
   heading: {
     fontSize: 22,
@@ -256,4 +261,22 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: "hidden",
   },
+  welcomeContainer: {
+    alignSelf: 'stretch',         
+    backgroundColor: 'transparent',
+    marginBottom: 0, 
+    marginLeft: 20,            
+  },
+  welcomeText: {
+    color: '#727272',
+    fontSize: 24,
+    marginBottom: 0,
+  },
+  subText: {  
+  color: '#1E4035',
+  fontSize: 28,
+  marginBottom: 20,
+  fontWeight: '500',
+  },
+
 });

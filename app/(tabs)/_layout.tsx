@@ -53,6 +53,7 @@ export default function AppLayout() {
         headerTitle: () => <LogoTitle />,
         headerTintColor: '#fff',
         headerShadowVisible: false,
+        scenecontainerStyle: {backgroundcolor: '#FFFFFF'},
         tabBarStyle: {
           backgroundColor: '#F5F5F5',
         },
@@ -67,21 +68,33 @@ export default function AppLayout() {
             case 'buyPage':  iconName = focused ? 'cash'           : 'cash-outline';        break;
             case 'sellPage': iconName = focused ? 'storefront'     : 'storefront-outline';  break;
             case 'settings': iconName = focused ? 'settings'       : 'settings-outline';    break;
+            case 'messaging': iconName = focused ? 'chatbubble'    : 'chatbubble-outline';  break; // Fixed icon
             default:         iconName = 'ellipse';
           }
           return <Ionicons name={iconName} size={24} color={color} />;
         },
         tabBarLabel:
-          route.name === 'buyPage' ? 'Buy' :
-          route.name === 'sellPage' ? 'Sell' :
+          route.name === 'buyPage' ? 'Products' :
+          route.name === 'sellPage' ? 'Seller' :
           route.name === 'settings' ? 'Settings' :
-          route.name === 'index' ? 'Home' : 'Home',
+          route.name === 'index' ? 'Home' : 'Messages',
       })}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="buyPage" />
+      <Tabs.Screen name="buyPage" options={{
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={() => router.push('/cart')}
+            style={{ marginRight: 16 }}
+          >
+            <Ionicons name="cart-outline" size={30} color="#1E4035" marginRight={12} marginBottom={12}  />
+          </TouchableOpacity>
+        )
+      }}
+        />
       <Tabs.Screen name="sellPage" />
       <Tabs.Screen name="settings" />
+      <Tabs.Screen name="messaging" />
     </Tabs>
   );
 }
@@ -111,6 +124,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'transparent',
+    marginBottom: 10,
   },
 })
 
