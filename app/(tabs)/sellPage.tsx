@@ -28,7 +28,6 @@ import { getAuth } from "firebase/auth";
 import DropDownPicker from "react-native-dropdown-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SellPage() {
   const auth = getAuth();
@@ -235,7 +234,7 @@ export default function SellPage() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <ScrollView style={styles.dashboardContainer}>
         <View style={styles.headerSection}>
           <Text style={styles.dashboardTitle}>Seller Dashboard</Text>
@@ -329,7 +328,7 @@ export default function SellPage() {
         transparent={false}
         onRequestClose={handleCloseAddCrop}
       >
-        <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={handleCloseAddCrop}>
               <Ionicons name="arrow-back" size={24} color="#000" />
@@ -455,19 +454,20 @@ export default function SellPage() {
               </View>
             </>
           )}
-        </SafeAreaView>
+        </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
+    backgroundColor: "#FFFFFF",
   },
   dashboardContainer: {
     flex: 1,
+    height: "50%",
   },
   headerSection: {
     flexDirection: "row",

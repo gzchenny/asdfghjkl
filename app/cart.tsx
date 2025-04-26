@@ -100,17 +100,42 @@ export default function CartPage() {
       setCheckoutLoading(true);
 
       const user = auth.currentUser;
-      await addDoc(collection(db, "orders"), {
-        userId: user.uid,
+
+      const newOrder = {
+        orderId: Date.now().toString(),
         items: [...cart],
         totalItems,
         totalPrice,
         status: "processing",
         createdAt: new Date(),
+      };
+
+      const orderRef = await addDoc(collection(db, "orders"), {
+        userId: user.uid,
+        ...newOrder,
       });
 
       const userRef = doc(db, "users", user.uid);
-      await updateDoc(userRef, { cart: [] });
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        const currentOrders = userDoc.data().orders || [];
+
+        await updateDoc(userRef, {
+          cart: [],
+          orders: [
+            ...currentOrders,
+            {
+              ...newOrder,
+              orderId: orderRef.id,
+            },
+          ],
+        });
+
+        console.log("Order added to user document:", orderRef.id);
+      } else {
+        console.error("User document not found");
+      }
 
       await clearCart();
 

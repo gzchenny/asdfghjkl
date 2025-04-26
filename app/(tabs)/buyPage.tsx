@@ -279,13 +279,13 @@ export default function BuyPage() {
             }}
           />
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.messageButton}
             onPress={() => handleMessageSeller(item.sellerID)}
           >
             <Ionicons name="chatbubble-outline" size={16} color="white" />
             <Text style={styles.messageButtonText}>Message</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </View>

@@ -3,12 +3,12 @@ import {
   Text,
   View,
   TextInput,
-  Button,
   Alert,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
   Pressable,
+  TouchableOpacity,
   Platform,
 } from "react-native";
 import { useRouter, Stack } from "expo-router";
@@ -135,85 +135,76 @@ export default function ProfileSetup() {
           Please provide some additional information to complete your profile
         </Text>
 
-        <View style={styles.inputGroup}>
-          <TextInput
-            placeholder="First Name"
-            placeholderTextColor="#aaa"
-            value={firstName}
-            onChangeText={setFirstName}
-            style={styles.input}
-          />
-
-          <TextInput
-            placeholder="Last Name"
-            placeholderTextColor="#aaa"
-            value={lastName}
-            onChangeText={setLastName}
-            style={styles.input}
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Detected Location</Text>
-          <Text style={[styles.input, styles.readOnlyInput]}>{location}</Text>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Date of Birth</Text>
-          <Pressable
-            style={[styles.input, styles.datePressable]}
-            onPress={() => setShowDobPicker(true)}
-          >
-            <Text style={{ color: dob ? "#000" : "#888" }}>
-              {dob || "Select Date of Birth"}
-            </Text>
-          </Pressable>
-
-          {showDobPicker && (
-            <>
-              <DateTimePicker
-                value={tempDob}
-                mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "calendar"}
-                onChange={(event, selectedDate) => {
-                  if (event.type === "set" && selectedDate) {
-                    setTempDob(selectedDate);
-                  } else {
-                    setShowDobPicker(false);
-                  }
-                }}
-              />
-              <Button
-                title="Confirm DOB"
-                color="#4CAF50"
-                onPress={() => {
-                  const formatted = `${
-                    tempDob.getMonth() + 1
-                  }/${tempDob.getDate()}/${tempDob.getFullYear()}`;
-                  setDob(formatted);
-                  setShowDobPicker(false);
-                }}
-              />
-            </>
-          )}
-        </View>
-
-        <View style={styles.inputGroup}>
-          <TextInput
-            placeholder="Phone Number"
-            placeholderTextColor="#aaa"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            style={styles.input}
-            keyboardType="phone-pad"
-          />
-        </View>
-
-        <Button
-          title="Complete Profile"
-          onPress={handleSubmit}
-          color="#ffd33d"
+        <TextInput
+          placeholder="First Name"
+          placeholderTextColor="#aaa"
+          value={firstName}
+          onChangeText={setFirstName}
+          style={styles.input}
         />
+
+        <TextInput
+          placeholder="Last Name"
+          placeholderTextColor="#aaa"
+          value={lastName}
+          onChangeText={setLastName}
+          style={styles.input}
+        />
+
+        <Text style={styles.label}>Detected Location</Text>
+        <Text style={[styles.input, styles.readOnlyInput]}>{location}</Text>
+
+        <Text style={styles.label}>Date of Birth</Text>
+        <Pressable
+          style={[styles.input, styles.datePressable]}
+          onPress={() => setShowDobPicker(true)}
+        >
+          <Text style={{ color: dob ? "#000" : "#888" }}>
+            {dob || "Select Date of Birth"}
+          </Text>
+        </Pressable>
+
+        {showDobPicker && (
+          <>
+            <DateTimePicker
+              value={tempDob}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "calendar"}
+              onChange={(event, selectedDate) => {
+                if (event.type === "set" && selectedDate) {
+                  setTempDob(selectedDate);
+                } else {
+                  setShowDobPicker(false);
+                }
+              }}
+            />
+            <TouchableOpacity
+              style={styles.confirmButton}
+              onPress={() => {
+                const formatted = `${
+                  tempDob.getMonth() + 1
+                }/${tempDob.getDate()}/${tempDob.getFullYear()}`;
+                setDob(formatted);
+                setShowDobPicker(false);
+              }}
+            >
+              <Text style={styles.confirmButtonText}>Confirm DOB</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        <TextInput
+          placeholder="Phone Number"
+          placeholderTextColor="#aaa"
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          style={styles.input}
+          keyboardType="phone-pad"
+        />
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Text style={styles.submitButtonText}>Complete Profile</Text>
+        </TouchableOpacity>
       </ScrollView>
     </>
   );
@@ -222,7 +213,7 @@ export default function ProfileSetup() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#25292e",
+    backgroundColor: "#FFFFF",
   },
   center: {
     justifyContent: "center",
@@ -230,27 +221,28 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 20,
+    alignItems: "center",
   },
   title: {
-    color: "#fff",
+    color: "#1E4035",
     fontSize: 24,
     marginBottom: 10,
     textAlign: "center",
+    marginTop: 60,
+    fontWeight: "bold",
   },
   subtitle: {
-    color: "#ddd",
+    color: "#1E4035",
     fontSize: 16,
     marginBottom: 20,
     textAlign: "center",
-  },
-  inputGroup: {
-    marginBottom: 20,
   },
   input: {
     width: "100%",
     height: 42,
     backgroundColor: "#fff",
     borderRadius: 6,
+    marginBottom: 16,
     paddingHorizontal: 12,
     fontSize: 16,
     borderWidth: 1,
@@ -262,9 +254,38 @@ const styles = StyleSheet.create({
   },
   label: {
     color: "#fff",
+    alignSelf: "flex-start",
     marginBottom: 5,
+    marginTop: 10,
   },
   datePressable: {
     justifyContent: "center",
+  },
+  confirmButton: {
+    backgroundColor: "#4CAF50",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+    marginTop: 10,
+  },
+  confirmButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  submitButton: {
+    backgroundColor: "#BFDCCF",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+    marginTop: 20,
+    width: "100%",
+    alignItems: "center",
+  },
+  submitButtonText: {
+    color: "#25292e",
+    fontWeight: "600",
+    fontSize: 16,
   },
 });
