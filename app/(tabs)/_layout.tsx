@@ -14,6 +14,7 @@ import SignIn from "../auth/signIn";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
+import { CartProvider } from "../components/cartcontext"; // Import CartProvider
 
 export default function AppLayout() {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -68,64 +69,68 @@ export default function AppLayout() {
   }
 
   return (
-    <Tabs
-      screenOptions={({ route }: { route: { name: string } }) => ({
-        headerShown: true,
-        headerTitleAlign: "left",
-        headerTitle: () => <LogoTitle />,
-        headerTintColor: "#fff",
-        headerShadowVisible: false,
-        tabBarStyle: {
-          backgroundColor: "#F5F5F5",
-        },
-        tabBarActiveTintColor: "#1E4035",
-        tabBarInactiveTintColor: "#888",
-        headerStyle: { backgroundColor: "#FFFFFF" },
-        tabBarIcon: ({ color, focused }) => {
-          let iconName: typeof Ionicons.defaultProps.name;
-          switch (route.name) {
-            case "index":
-              iconName = focused ? "home" : "home-outline";
-              break;
-            case "buyPage":
-              iconName = focused ? "cash" : "cash-outline";
-              break;
-            case "sellPage":
-              iconName = focused ? "storefront" : "storefront-outline";
-              break;
-            case "messages":
-              iconName = focused
-                ? "chatbubble-ellipses"
-                : "chatbubble-ellipses-outline";
-              break;
-            case "settings":
-              iconName = focused ? "settings" : "settings-outline";
-              break;
-            default:
-              iconName = "ellipse";
-          }
-          return <Ionicons name={iconName} size={24} color={color} />;
-        },
-        tabBarLabel:
-          route.name === "buyPage"
-            ? "Buy"
-            : route.name === "sellPage"
-            ? "Sell"
-            : route.name === "settings"
-            ? "Settings"
-            : route.name === "messages"
-            ? "Messages"
-            : route.name === "index"
-            ? "Home"
-            : "Home",
-      })}
-    >
-      <Tabs.Screen name="index" />
-      <Tabs.Screen name="buyPage" />
-      <Tabs.Screen name="sellPage" />
-      <Tabs.Screen name="messages" />
-      <Tabs.Screen name="settings" />
-    </Tabs>
+    <CartProvider>
+      {" "}
+      {/* Wrap your Tabs with CartProvider */}
+      <Tabs
+        screenOptions={({ route }: { route: { name: string } }) => ({
+          headerShown: true,
+          headerTitleAlign: "left",
+          headerTitle: () => <LogoTitle />,
+          headerTintColor: "#fff",
+          headerShadowVisible: false,
+          tabBarStyle: {
+            backgroundColor: "#F5F5F5",
+          },
+          tabBarActiveTintColor: "#1E4035",
+          tabBarInactiveTintColor: "#888",
+          headerStyle: { backgroundColor: "#FFFFFF" },
+          tabBarIcon: ({ color, focused }) => {
+            let iconName: typeof Ionicons.defaultProps.name;
+            switch (route.name) {
+              case "index":
+                iconName = focused ? "home" : "home-outline";
+                break;
+              case "buyPage":
+                iconName = focused ? "cash" : "cash-outline";
+                break;
+              case "sellPage":
+                iconName = focused ? "storefront" : "storefront-outline";
+                break;
+              case "messages":
+                iconName = focused
+                  ? "chatbubble-ellipses"
+                  : "chatbubble-ellipses-outline";
+                break;
+              case "settings":
+                iconName = focused ? "settings" : "settings-outline";
+                break;
+              default:
+                iconName = "ellipse";
+            }
+            return <Ionicons name={iconName} size={24} color={color} />;
+          },
+          tabBarLabel:
+            route.name === "buyPage"
+              ? "Buy"
+              : route.name === "sellPage"
+              ? "Sell"
+              : route.name === "settings"
+              ? "Settings"
+              : route.name === "messages"
+              ? "Messages"
+              : route.name === "index"
+              ? "Home"
+              : "Home",
+        })}
+      >
+        <Tabs.Screen name="index" />
+        <Tabs.Screen name="buyPage" />
+        <Tabs.Screen name="sellPage" />
+        <Tabs.Screen name="messages" />
+        <Tabs.Screen name="settings" />
+      </Tabs>
+    </CartProvider>
   );
 }
 

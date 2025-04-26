@@ -172,13 +172,7 @@ export default function BuyerDashboard() {
         </View>
 
         {/* Recommendations Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recommendations</Text>
-          <ScrollView
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-          ></ScrollView>
-        </View>
+        
       </ScrollView>
     </View>
   );
@@ -412,12 +406,29 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
 
-  recommendationContainer: {
-    paddingHorizontal: 10,
+  tile: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 16,
+    marginRight: 12,
+    width: 250,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    justifyContent: "space-between", // Ensures the button stays at the bottom
   },
-
-  recommendationCard: {
-    width: 150,
-    height: 180,
+  button: {
+    backgroundColor: "#1E4035",
+    paddingVertical: 10,
+    borderRadius: 6,
+    alignItems: "center",
+    marginTop: 16, // Adds spacing from the content above
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
