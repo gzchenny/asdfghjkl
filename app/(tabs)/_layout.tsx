@@ -131,7 +131,7 @@ export default function AppLayout() {
 const LogoTitle = () => (
   <View style={styles.logoContainer}>
     <Image
-      source={require("../../assets/images/logo.png")}
+      source={require("../../assets/images/icon.png")}
       style={styles.logo}
     />
     <Text style={styles.logoText}>crop</Text>

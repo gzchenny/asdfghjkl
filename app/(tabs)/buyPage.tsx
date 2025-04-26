@@ -30,24 +30,6 @@ import { useCart } from "../components/cartcontext";
 import DropDownPicker from "react-native-dropdown-picker";
 import FilterChipsBar from "../components/filterChipsBar";
 
-const API_URL = "http://10.13.241.155:5000/predict";
-
-async function fetchPredictedPrice(itemName: string): Promise<number | null> {
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ features: itemName }),
-    });
-    const data = await response.json();
-    return data.prediction;
-  } catch (error) {
-    console.error("Error fetching prediction:", error);
-    return null;
-  }
-}
-
-
 interface Crop {
   id: string;
   sellerID: string;
@@ -58,10 +40,8 @@ interface Crop {
   imageURL?: string;
   sellerFirstName?: string;
   sellerLastName?: string;
-  predictedPrice?: number; 
+  predictedPrice?: number;
 }
-
-
 
 export default function BuyPage() {
   const [crops, setCrops] = useState<Crop[]>([]);
@@ -152,6 +132,29 @@ export default function BuyPage() {
     }
   };
 
+  // Function to fetch predicted price from API
+  const fetchPredictedPrice = async (productName: string): Promise<number> => {
+    try {
+      const response = await fetch('http://localhost:5000/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ features: productName }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch predicted price');
+      }
+      
+      const data = await response.json();
+      return data.prediction;
+    } catch (error) {
+      console.error('Error fetching predicted price:', error);
+      return -1;
+    }
+  };
+
   useEffect(() => {
     const fetchCrops = async () => {
       try {
@@ -170,16 +173,6 @@ export default function BuyPage() {
               imageURL: data.imageURL || null,
             };
 
-            // Fetch predicted price from API
-            try {
-              const predictedPrice = await fetchPredictedPrice(data.itemName);
-              if (predictedPrice !== null) {
-                cropData.predictedPrice = predictedPrice;
-              }
-            } catch (error) {
-              console.error(`Error fetching predicted price for ${data.itemName}:`, error);
-            }
-
             if (data.sellerID) {
               try {
                 const userDocRef = doc(db, "users", data.sellerID);
@@ -196,6 +189,14 @@ export default function BuyPage() {
                   error
                 );
               }
+            }
+
+            // Fetch predicted price for the crop
+            try {
+              cropData.predictedPrice = await fetchPredictedPrice(data.itemName);
+            } catch (error) {
+              console.error(`Error getting predicted price for ${data.itemName}:`, error);
+              cropData.predictedPrice = -1;
             }
 
             return cropData;
@@ -305,8 +306,8 @@ export default function BuyPage() {
     <TouchableOpacity
       onPress={() =>
         router.push({
-          pathname: "/productPage",
-          params: { cropId: item.id },
+          pathname: "../components/productPage",
+          query: { cropId: item.id },
         })
       }
     >
@@ -323,16 +324,26 @@ export default function BuyPage() {
           <View style={styles.headerRow}>
             <Text style={styles.name}>{item.itemName}</Text>
             <Text style={styles.price}>${item.costPerWeight.toFixed(2)}/kg</Text>
-            {item.predictedPrice !== undefined && (
-  <Text style={{ fontSize: 13, color: "#666" }}>
-    Predicted Market Price: ${item.predictedPrice.toFixed(2)}
-  </Text>
-)}
-
           </View>
           
           <Text style={styles.harvestDate}>Harvested: {item.harvestDate}</Text>
           <Text style={styles.quantityText}>Available: {item.quantity}kg</Text>
+          
+          {item.predictedPrice !== undefined && item.predictedPrice >= 0 && (
+            <View style={styles.priceCompareContainer}>
+              <Text style={styles.predictedPriceLabel}>Market avg:</Text>
+              <Text style={styles.predictedPriceValue}>${item.predictedPrice.toFixed(2)}/kg</Text>
+              <View style={[
+                styles.priceDiffTag,
+                item.costPerWeight < item.predictedPrice ? styles.priceDiffGood : styles.priceDiffBad
+              ]}>
+                <Text style={styles.priceDiffText}>
+                  {item.costPerWeight < item.predictedPrice ? '↓' : '↑'} 
+                  ${Math.abs(item.costPerWeight - item.predictedPrice).toFixed(2)}
+                </Text>
+              </View>
+            </View>
+          )}
           
           <View style={styles.sellerRow}>
             <Ionicons name="person-outline" size={14} color="#666" />
@@ -719,5 +730,37 @@ const styles = StyleSheet.create({
   applyFilterText: {
     fontWeight: "600",
     color: "#FFFFFF",
+  },
+  priceCompareContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  predictedPriceLabel: {
+    fontSize: 12,
+    color: '#555555',
+    marginRight: 4,
+  },
+  predictedPriceValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#555555',
+    marginRight: 6,
+  },
+  priceDiffTag: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  priceDiffGood: {
+    backgroundColor: '#E6F4EA',
+  },
+  priceDiffBad: {
+    backgroundColor: '#FEEAE6',
+  },
+  priceDiffText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
 });

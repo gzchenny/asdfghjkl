@@ -38,16 +38,16 @@ export default function BuyItem({
   return (
     <View style={styles.container}>
       <Text style={styles.productName}>{productName}</Text>
-      
+
       <View style={styles.farmRow}>
         <Text style={styles.farmName}>{farmName}</Text>
         <TouchableOpacity onPress={onMessagePress}>
           <Text style={styles.messageButton}>Message</Text>
         </TouchableOpacity>
       </View>
-      
+
       <Text style={styles.date}>{formattedDate}</Text>
-      
+
       <View style={styles.actionRow}>
         <View style={styles.quantityPill}>
           <TouchableOpacity
@@ -56,9 +56,9 @@ export default function BuyItem({
           >
             <Text style={styles.quantityControl}>-</Text>
           </TouchableOpacity>
-          
+
           <Text style={styles.quantity}>{quantity}</Text>
-          
+
           <TouchableOpacity
             onPress={increaseQuantity}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -66,7 +66,7 @@ export default function BuyItem({
             <Text style={styles.quantityControl}>+</Text>
           </TouchableOpacity>
         </View>
-        
+
         <TouchableOpacity
           style={styles.orderButton}
           onPress={handleConfirm}
@@ -154,4 +154,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 14,
   }
-}); 
+});

@@ -41,6 +41,11 @@ export default function SignUp() {
         gender: "N/A",
         email: email,
         profileCompleted: false,
+        chats: [],
+        crops: [],
+        orders: [],
+        totalSales: 0,
+        totalRevenue: 0,
       });
 
       Alert.alert("Success", "Your account has been created!");
@@ -58,7 +63,7 @@ export default function SignUp() {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "#25292e",
+          backgroundColor: "#FFFFFF",
           padding: 20,
         }}
       >

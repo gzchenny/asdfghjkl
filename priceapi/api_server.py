@@ -1,15 +1,13 @@
 import datetime
+import random
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from simple_predict import predict_price
 import os
-import torch
-
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/predict": {"origins": "*"}})
 
-# 27 field names, in correct order
 FIELDS = [
     'is_in_season', 'natural_disruption', 'year', 'month', 'day',
     'productname_Asparagus', 'productname_Avocados', 'productname_Broccoli Bunches',
@@ -33,15 +31,20 @@ def format_input(selected_product: str) -> str:
     values.append(str(today.day))  # day
 
     product_fields = FIELDS[5:]
+    selected_product_clean = selected_product.strip().lower()
 
-    selected_product_lower = selected_product.lower().strip()
+    matched_index = None
+    for i, field in enumerate(product_fields):
+        product_name_clean = field.replace('productname_', '').lower()
+        if product_name_clean == selected_product_clean:
+            matched_index = i
+            break
 
-    for field in product_fields:
-        product_name = field.replace('productname_', '').lower()
-        if product_name == selected_product_lower:
-            values.append('True')
-        else:
-            values.append('False')
+    if matched_index is None:
+        matched_index = random.randint(0, len(product_fields) - 1)
+
+    for i in range(len(product_fields)):
+        values.append('True' if i == matched_index else 'False')
 
     return ','.join(values)
 
@@ -53,9 +56,23 @@ def predict():
         return jsonify({'error': 'Missing features field'}), 400
 
     features = data['features']
+    
+    # Normalize product name to match one of our supported products
+    product_fields = FIELDS[5:]
+    product_name_clean = features.strip().lower()
+    
+    matched_product = None
+    for field in product_fields:
+        product_name = field.replace('productname_', '').lower()
+        if product_name in product_name_clean or product_name_clean in product_name:
+            matched_product = field.replace('productname_', '')
+            break
+    
+    # If no match found, use "Tomatoes" as default
+    if not matched_product:
+        matched_product = "Tomatoes"
 
-    formatted_string = format_input(features)
-
+    formatted_string = format_input(matched_product)
     prediction = predict_price(formatted_string)
 
     return jsonify({'prediction': prediction})

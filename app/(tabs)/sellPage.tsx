@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,8 +11,18 @@ import {
   Platform,
   TouchableOpacity,
   Modal,
+  ActivityIndicator,
 } from "react-native";
-import { addDoc, collection, query, where, getDocs } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 import { getAuth } from "firebase/auth";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -24,8 +34,10 @@ export default function SellPage() {
   const auth = getAuth();
   const user = auth.currentUser;
   const [showAddCropModal, setShowAddCropModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState<any>(null);
+  const [userCrops, setUserCrops] = useState<any[]>([]);
 
-  // Product listing form state
   const [showValidationError, setShowValidationError] = useState(false);
   const [value, setValue] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -52,11 +64,41 @@ export default function SellPage() {
     { label: "Other", value: "Other" },
   ]);
 
-  const activeCrops = [
-    { id: 1, name: "Corn", quantity: "500kg", price: "$2.50/kg", sales: 12 },
-    { id: 2, name: "Wheat", quantity: "300kg", price: "$1.75/kg", sales: 8 },
-    { id: 3, name: "Soybeans", quantity: "200kg", price: "$3.20/kg", sales: 5 },
-  ];
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setUserData(userDoc.data());
+        }
+        
+        const cropsQuery = query(
+          collection(db, "crops"),
+          where("sellerID", "==", user.uid)
+        );
+        const cropsSnapshot = await getDocs(cropsQuery);
+        const cropsData = cropsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        setUserCrops(cropsData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        Alert.alert("Error", "Failed to load your seller data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, [user]);
 
   const handleOpenAddCrop = () => {
     setShowAddCropModal(true);
@@ -104,19 +146,58 @@ export default function SellPage() {
         costPerWeight: parseFloat(formData.costPerWeight),
         quantity: parseFloat(formData.quantity),
         sellerID: user?.uid || "anonymous",
+        sales: 0,
+        createdAt: new Date().toISOString(),
       });
+
+      if (user) {
+        const userRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userRef);
+        
+        if (userDoc.exists()) {
+          const currentCrops = userDoc.data().crops || [];
+          await updateDoc(userRef, {
+            crops: [...currentCrops, itemName]
+          });
+        }
+      }
 
       Alert.alert("Success", "Crop listed successfully!");
       handleCloseAddCrop();
+      
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setUserData(userDoc.data());
+        }
+        
+        const cropsQuery = query(
+          collection(db, "crops"),
+          where("sellerID", "==", user.uid)
+        );
+        const cropsSnapshot = await getDocs(cropsQuery);
+        const cropsData = cropsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setUserCrops(cropsData);
+      }
     } catch (error) {
       console.error("Error adding crop:", error);
       Alert.alert("Error", "Failed to list crop.");
     }
   };
 
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#1E4035" />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      {}
       <ScrollView style={styles.dashboardContainer}>
         <View style={styles.headerSection}>
           <Text style={styles.dashboardTitle}>Seller Dashboard</Text>
@@ -129,69 +210,77 @@ export default function SellPage() {
           </TouchableOpacity>
         </View>
 
-        {}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Your Active Listings</Text>
-          {activeCrops.map((crop) => (
-            <View key={crop.id} style={styles.cropCard}>
-              <View style={styles.cropInfo}>
-                <Text style={styles.cropName}>{crop.name}</Text>
-                <Text style={styles.cropDetails}>
-                  {crop.quantity} • {crop.price}
-                </Text>
+          {userCrops.length > 0 ? (
+            userCrops.map((crop) => (
+              <View key={crop.id} style={styles.cropCard}>
+                <View style={styles.cropInfo}>
+                  <Text style={styles.cropName}>{crop.itemName}</Text>
+                  <Text style={styles.cropDetails}>
+                    {crop.quantity}kg • ${crop.costPerWeight}/kg
+                  </Text>
+                </View>
+                <View style={styles.cropStats}>
+                  <Text style={styles.salesText}>{crop.sales || 0} sales</Text>
+                  <TouchableOpacity style={styles.editButton}>
+                    <Ionicons name="create-outline" size={20} color="#666" />
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.cropStats}>
-                <Text style={styles.salesText}>{crop.sales} sales</Text>
-                <TouchableOpacity style={styles.editButton}>
-                  <Ionicons name="create-outline" size={20} color="#666" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
+            ))
+          ) : (
+            <Text style={styles.emptyStateText}>
+              No crops listed yet. Add your first crop!
+            </Text>
+          )}
         </View>
 
-        {}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Sales Overview</Text>
           <View style={styles.statsCard}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>25</Text>
+              <Text style={styles.statValue}>
+                {userData?.totalSales || 0}
+              </Text>
               <Text style={styles.statLabel}>Total Sales</Text>
             </View>
             <View style={[styles.statItem, styles.statBorder]}>
-              <Text style={styles.statValue}>$1,250</Text>
+              <Text style={styles.statValue}>
+                ${userData?.totalRevenue || 0}
+              </Text>
               <Text style={styles.statLabel}>Revenue</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>3</Text>
+              <Text style={styles.statValue}>
+                {userCrops.length}
+              </Text>
               <Text style={styles.statLabel}>Active Crops</Text>
             </View>
           </View>
         </View>
 
-        {}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Orders</Text>
-          <View style={styles.orderCard}>
-            <Text style={styles.orderTitle}>Order #1042</Text>
-            <Text style={styles.orderDetails}>Corn - 50kg</Text>
-            <View style={styles.orderFooter}>
-              <Text style={styles.orderDate}>April 15, 2025</Text>
-              <Text style={styles.orderStatus}>Shipped</Text>
-            </View>
-          </View>
-          <View style={styles.orderCard}>
-            <Text style={styles.orderTitle}>Order #1039</Text>
-            <Text style={styles.orderDetails}>Wheat - 25kg</Text>
-            <View style={styles.orderFooter}>
-              <Text style={styles.orderDate}>April 12, 2025</Text>
-              <Text style={styles.orderStatus}>Delivered</Text>
-            </View>
-          </View>
+          {userData?.orders && userData.orders.length > 0 ? (
+            userData.orders.slice(0, 2).map((order: any, index: number) => (
+              <View key={index} style={styles.orderCard}>
+                <Text style={styles.orderTitle}>Order #{order.id || index + 1000}</Text>
+                <Text style={styles.orderDetails}>{order.item} - {order.quantity}kg</Text>
+                <View style={styles.orderFooter}>
+                  <Text style={styles.orderDate}>{order.date || "Recent order"}</Text>
+                  <Text style={styles.orderStatus}>{order.status || "Processing"}</Text>
+                </View>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.emptyStateText}>
+              No orders yet. Your orders will appear here.
+            </Text>
+          )}
         </View>
       </ScrollView>
 
-      {}
       <Modal
         visible={showAddCropModal}
         animationType="slide"
@@ -465,8 +554,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#4CAF50",
   },
-  
-
   modalContainer: {
     flex: 1,
     backgroundColor: "#fff",
@@ -531,5 +618,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
     marginBottom: 20,
+  },
+  emptyStateText: {
+    textAlign: 'center',
+    color: '#888',
+    fontStyle: 'italic',
+    padding: 16,
   },
 });

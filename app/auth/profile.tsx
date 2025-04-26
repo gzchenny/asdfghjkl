@@ -100,9 +100,6 @@ export default function ProfileSetup() {
           dob,
           phoneNumber,
           profileCompleted: true,
-          chats: [],
-          crops: [],
-          orders: [],
         });
 
         Alert.alert(
