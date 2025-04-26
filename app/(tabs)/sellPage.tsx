@@ -70,24 +70,24 @@ export default function SellPage() {
         setLoading(false);
         return;
       }
-      
+
       try {
         setLoading(true);
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           setUserData(userDoc.data());
         }
-        
+
         const cropsQuery = query(
           collection(db, "crops"),
           where("sellerID", "==", user.uid)
         );
         const cropsSnapshot = await getDocs(cropsQuery);
-        const cropsData = cropsSnapshot.docs.map(doc => ({
+        const cropsData = cropsSnapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data()
+          ...doc.data(),
         }));
-        
+
         setUserCrops(cropsData);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -96,7 +96,7 @@ export default function SellPage() {
         setLoading(false);
       }
     };
-    
+
     fetchUserData();
   }, [user]);
 
@@ -141,44 +141,71 @@ export default function SellPage() {
     setShowValidationError(false);
 
     try {
+      // Generate a unique ID for the crop
+      const cropId = `crop-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+      // Add the crop to the crops collection
       await addDoc(collection(db, "crops"), {
         ...formData,
+        cropId: cropId,
         costPerWeight: parseFloat(formData.costPerWeight),
         quantity: parseFloat(formData.quantity),
         sellerID: user?.uid || "anonymous",
         sales: 0,
+        revenue: 0,
         createdAt: new Date().toISOString(),
       });
 
+      // Update the user document
       if (user) {
         const userRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userRef);
-        
+
         if (userDoc.exists()) {
-          const currentCrops = userDoc.data().crops || [];
+          const userData = userDoc.data();
+
+          // Get current crops and orders arrays (initializing if they don't exist)
+          const currentCrops = userData.crops || [];
+          const currentOrders = userData.orders || [];
+
+          // Create a new crop entry for the user's crops array
+          const cropEntry = {
+            id: cropId,
+            name: itemName,
+            dateAdded: new Date().toISOString(),
+            quantity: parseFloat(quantity),
+            price: parseFloat(costPerWeight),
+            sales: 0,
+            active: true,
+          };
+
+          // Update the user document with the new crop and maintain stats
           await updateDoc(userRef, {
-            crops: [...currentCrops, itemName]
+            crops: [...currentCrops, cropEntry],
+            orders: currentOrders,
+            totalListings: (userData.totalListings || 0) + 1,
           });
         }
       }
 
       Alert.alert("Success", "Crop listed successfully!");
       handleCloseAddCrop();
-      
+
+      // Refresh data
       if (user) {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           setUserData(userDoc.data());
         }
-        
+
         const cropsQuery = query(
           collection(db, "crops"),
           where("sellerID", "==", user.uid)
         );
         const cropsSnapshot = await getDocs(cropsQuery);
-        const cropsData = cropsSnapshot.docs.map(doc => ({
+        const cropsData = cropsSnapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data()
+          ...doc.data(),
         }));
         setUserCrops(cropsData);
       }
@@ -190,7 +217,12 @@ export default function SellPage() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <ActivityIndicator size="large" color="#1E4035" />
       </View>
     );
@@ -240,9 +272,7 @@ export default function SellPage() {
           <Text style={styles.sectionTitle}>Sales Overview</Text>
           <View style={styles.statsCard}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>
-                {userData?.totalSales || 0}
-              </Text>
+              <Text style={styles.statValue}>{userData?.totalSales || 0}</Text>
               <Text style={styles.statLabel}>Total Sales</Text>
             </View>
             <View style={[styles.statItem, styles.statBorder]}>
@@ -252,9 +282,7 @@ export default function SellPage() {
               <Text style={styles.statLabel}>Revenue</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>
-                {userCrops.length}
-              </Text>
+              <Text style={styles.statValue}>{userCrops.length}</Text>
               <Text style={styles.statLabel}>Active Crops</Text>
             </View>
           </View>
@@ -265,11 +293,19 @@ export default function SellPage() {
           {userData?.orders && userData.orders.length > 0 ? (
             userData.orders.slice(0, 2).map((order: any, index: number) => (
               <View key={index} style={styles.orderCard}>
-                <Text style={styles.orderTitle}>Order #{order.id || index + 1000}</Text>
-                <Text style={styles.orderDetails}>{order.item} - {order.quantity}kg</Text>
+                <Text style={styles.orderTitle}>
+                  Order #{order.id || index + 1000}
+                </Text>
+                <Text style={styles.orderDetails}>
+                  {order.item} - {order.quantity}kg
+                </Text>
                 <View style={styles.orderFooter}>
-                  <Text style={styles.orderDate}>{order.date || "Recent order"}</Text>
-                  <Text style={styles.orderStatus}>{order.status || "Processing"}</Text>
+                  <Text style={styles.orderDate}>
+                    {order.date || "Recent order"}
+                  </Text>
+                  <Text style={styles.orderStatus}>
+                    {order.status || "Processing"}
+                  </Text>
                 </View>
               </View>
             ))
@@ -620,9 +656,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   emptyStateText: {
-    textAlign: 'center',
-    color: '#888',
-    fontStyle: 'italic',
+    textAlign: "center",
+    color: "#888",
+    fontStyle: "italic",
     padding: 16,
   },
 });

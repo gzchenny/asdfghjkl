@@ -1,17 +1,13 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 interface BuyItemProps {
   productName: string;
   farmName: string;
   date?: string;
   initialQuantity?: number;
-  onConfirm: (productName: string, quantity: number) => void;
+  pricePerItem: number;
+  onConfirm: (productName: string, quantity: number, totalCost: number) => void;
   onMessagePress?: () => void;
 }
 
@@ -22,13 +18,16 @@ export default function BuyItem({
   initialQuantity = 1,
   onConfirm,
   onMessagePress,
+  pricePerItem,
 }: BuyItemProps) {
   const [quantity, setQuantity] = useState<number>(initialQuantity);
   const formattedDate = date || "April 26, 2025";
+  const totalPrice = (pricePerItem * quantity).toFixed(2);
 
   const handleConfirm = () => {
     if (quantity <= 0) return;
-    onConfirm(productName, quantity);
+    const totalCost = pricePerItem * quantity;
+    onConfirm(productName, quantity, totalCost);
   };
 
   const increaseQuantity = () => setQuantity((prev) => prev + 1);
@@ -37,16 +36,9 @@ export default function BuyItem({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.productName}>{productName}</Text>
-
-      <View style={styles.farmRow}>
-        <Text style={styles.farmName}>{farmName}</Text>
-        <TouchableOpacity onPress={onMessagePress}>
-          <Text style={styles.messageButton}>Message</Text>
-        </TouchableOpacity>
+      <View style={styles.orderSummary}>
+        <Text style={styles.totalText}>Total: ${totalPrice}</Text>
       </View>
-
-      <Text style={styles.date}>{formattedDate}</Text>
 
       <View style={styles.actionRow}>
         <View style={styles.quantityPill}>
@@ -67,11 +59,8 @@ export default function BuyItem({
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          style={styles.orderButton}
-          onPress={handleConfirm}
-        >
-          <Text style={styles.orderButtonText}>Order Again</Text>
+        <TouchableOpacity style={styles.orderButton} onPress={handleConfirm}>
+          <Text style={styles.orderButtonText}>Crop It!</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -82,13 +71,14 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FFFFFF",
     borderRadius: 8,
-    marginBottom: 16,
+    marginBottom: 8,
     padding: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+    alignSelf: 'stretch',
   },
   productName: {
     fontSize: 17,
@@ -120,7 +110,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 8,
   },
   quantityPill: {
     flexDirection: "row",
@@ -153,5 +143,14 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "600",
     fontSize: 14,
-  }
+  },
+  orderSummary: {
+    marginBottom: 4,
+  },
+  totalText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#234930",
+    textAlign: "right",
+  },
 });

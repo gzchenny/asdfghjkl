@@ -77,6 +77,19 @@ def predict():
 
     return jsonify({'prediction': prediction})
 
+# Add a test route to verify the server is running
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({
+        'status': 'API is running',
+        'test_endpoint': 'Send a POST request to /predict with {"features": "product_name"}'
+    })
+
+# Make sure this block runs when you execute the file
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    print(f"Starting server on port {port}...")
+    # Run with threaded=True to handle concurrent requests
+    app.run(host='0.0.0.0', port=port, debug=True, threaded=True)
+else:
+    print("This module was imported, not run directly")

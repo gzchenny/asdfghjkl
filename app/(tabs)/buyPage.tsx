@@ -7,8 +7,7 @@ import {
   ActivityIndicator,
   Image,
   TouchableOpacity,
-  ScrollView,
-  FlatList
+  FlatList,
 } from "react-native";
 import {
   collection,
@@ -27,7 +26,6 @@ import { useRouter } from "expo-router";
 import { getAuth } from "firebase/auth";
 import { Ionicons } from "@expo/vector-icons";
 import { useCart } from "../components/cartcontext";
-import DropDownPicker from "react-native-dropdown-picker";
 import FilterChipsBar from "../components/filterChipsBar";
 
 interface Crop {
@@ -40,7 +38,6 @@ interface Crop {
   imageURL?: string;
   sellerFirstName?: string;
   sellerLastName?: string;
-  predictedPrice?: number;
 }
 
 export default function BuyPage() {
@@ -49,29 +46,11 @@ export default function BuyPage() {
   const [filteredCrops, setFilteredCrops] = useState<Crop[]>([]);
   const router = useRouter();
   const auth = getAuth();
-
   const { cart, addToCart } = useCart();
 
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = cart.reduce(
-    (sum, item) => sum + item.quantity * item.price,
-    0
-  );
-
-  const [filterType, setFilterType] = useState<string | null>(null);
   const [selectedCrop, setSelectedCrop] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
-  const [showFilterSummary, setShowFilterSummary] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState(true);
-  const [dropdownItems, setDropdownItems] = useState<any[]>([]);
-  const [dropdownValue, setDropdownValue] = useState<string | null>(null);
-
-  const resetFilters = () => {
-    setSelectedCrop(null);
-    setSelectedLocation(null);
-    setSelectedPrice(null);
-  };
 
   const activeFiltersCount =
     (selectedCrop ? 1 : 0) +
@@ -132,29 +111,6 @@ export default function BuyPage() {
     }
   };
 
-  // Function to fetch predicted price from API
-  const fetchPredictedPrice = async (productName: string): Promise<number> => {
-    try {
-      const response = await fetch('http://localhost:5000/predict', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ features: productName }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch predicted price');
-      }
-      
-      const data = await response.json();
-      return data.prediction;
-    } catch (error) {
-      console.error('Error fetching predicted price:', error);
-      return -1;
-    }
-  };
-
   useEffect(() => {
     const fetchCrops = async () => {
       try {
@@ -189,14 +145,6 @@ export default function BuyPage() {
                   error
                 );
               }
-            }
-
-            // Fetch predicted price for the crop
-            try {
-              cropData.predictedPrice = await fetchPredictedPrice(data.itemName);
-            } catch (error) {
-              console.error(`Error getting predicted price for ${data.itemName}:`, error);
-              cropData.predictedPrice = -1;
             }
 
             return cropData;
@@ -241,143 +189,60 @@ export default function BuyPage() {
     setFilteredCrops(result);
   }, [selectedCrop, selectedLocation, selectedPrice, crops]);
 
-  const handleFilterPress = (type: string) => {
-    setFilterType(type);
-    setDropdownValue(null);
-    setOpenDropdown(true);
-    switch (type) {
-      case "crop":
-        setDropdownItems([
-          { label: "Apple", value: "apple" },
-          { label: "Banana", value: "banana" },
-          { label: "Barley", value: "barley" },
-          { label: "Cabbage", value: "cabbage" },
-          { label: "Carrot", value: "carrot" },
-          { label: "Corn", value: "corn" },
-          { label: "Lettuce", value: "lettuce" },
-          { label: "Potato", value: "potato" },
-          { label: "Tomato", value: "tomato" },
-          { label: "Wheat", value: "wheat" },
-        ]);
-        break;
-      case "location":
-        setDropdownItems([
-          { label: "Carlton", value: "carlton" },
-          { label: "Melbourne", value: "melbourne" },
-          { label: "Parkville", value: "parkville" },
-          // { label: "ACT", value: "act" },
-          // { label: "NSW", value: "nsw" },
-          // { label: "NT", value: "nt" },
-          // { label: "QLD", value: "qld" },
-          // { label: "SA", value: "sa" },
-          // { label: "TAS", value: "tas" },
-          // { label: "VIC", value: "vic" },
-          // { label: "WA", value: "wa" },
-        ]);
-        break;
-      case "price":
-        setDropdownItems([
-          { label: "$0 - $2", value: "0-2" },
-          { label: "$2 - $5", value: "2-5" },
-          { label: "$5 - $10", value: "5-10" },
-          { label: "$10+", value: "10+" },
-        ]);
-        break;
-      default:
-        setDropdownItems([]);
-    }
-  };
-
-  const applyFilter = ({
-    crop,
-    location,
-    price,
-  }: {
-    crop?: string | null;
-    location?: string | null;
-    price?: string | null;
-  } = {}) => {
-    if (crop !== undefined) setSelectedCrop(crop);
-    if (location !== undefined) setSelectedLocation(location);
-    if (price !== undefined) setSelectedPrice(price);
-  };
-
   const renderItem = ({ item }: { item: Crop }) => (
-    <TouchableOpacity
-      onPress={() =>
-        router.push({
-          pathname: "../components/productPage",
-          query: { cropId: item.id },
-        })
-      }
-    >
-      <View style={styles.card}>
-        <Image
-          source={
-            item.imageURL
-              ? { uri: item.imageURL }
-              : require("../../assets/images/react-logo.png")
-          }
-          style={styles.image}
+    <View style={styles.card}>
+      <Image
+        source={
+          item.imageURL
+            ? { uri: item.imageURL }
+            : require("../../assets/images/react-logo.png")
+        }
+        style={styles.image}
+      />
+      <View style={styles.info}>
+        <View style={styles.headerRow}>
+          <Text style={styles.name}>{item.itemName}</Text>
+          <Text style={styles.price}>${item.costPerWeight.toFixed(2)}/kg</Text>
+        </View>
+        <Text style={styles.harvestDate}>Harvested: {item.harvestDate}</Text>
+        <Text style={styles.quantityText}>Available: {item.quantity}kg</Text>
+
+        <View style={styles.sellerRow}>
+          <Ionicons name="person-outline" size={14} color="#666" />
+          <Text style={styles.seller}>
+            {item.sellerFirstName ?? ""} {item.sellerLastName ?? ""}
+            {!item.sellerFirstName && !item.sellerLastName && item.sellerID}
+          </Text>
+        </View>
+
+        <View style={styles.actionRow}>
+        <BuyItem
+          productName={item.itemName}
+          farmName={item.sellerFirstName ?? ""}
+          initialQuantity={1}
+          pricePerItem={item.costPerWeight}
+          onConfirm={(itemName, quantity, totalCost) => { 
+            addToCart({
+              id: item.id,
+              itemName,
+              price: item.costPerWeight,
+              quantity,
+            });
+            console.log(`Added ${quantity} x ${itemName} = $${totalCost.toFixed(2)}`);
+          }}
         />
-        <View style={styles.info}>
-          <View style={styles.headerRow}>
-            <Text style={styles.name}>{item.itemName}</Text>
-            <Text style={styles.price}>${item.costPerWeight.toFixed(2)}/kg</Text>
-          </View>
-          
-          <Text style={styles.harvestDate}>Harvested: {item.harvestDate}</Text>
-          <Text style={styles.quantityText}>Available: {item.quantity}kg</Text>
-          
-          {item.predictedPrice !== undefined && item.predictedPrice >= 0 && (
-            <View style={styles.priceCompareContainer}>
-              <Text style={styles.predictedPriceLabel}>Market avg:</Text>
-              <Text style={styles.predictedPriceValue}>${item.predictedPrice.toFixed(2)}/kg</Text>
-              <View style={[
-                styles.priceDiffTag,
-                item.costPerWeight < item.predictedPrice ? styles.priceDiffGood : styles.priceDiffBad
-              ]}>
-                <Text style={styles.priceDiffText}>
-                  {item.costPerWeight < item.predictedPrice ? '↓' : '↑'} 
-                  ${Math.abs(item.costPerWeight - item.predictedPrice).toFixed(2)}
-                </Text>
-              </View>
-            </View>
-          )}
-          
-          <View style={styles.sellerRow}>
-            <Ionicons name="person-outline" size={14} color="#666" />
-            <Text style={styles.seller}>
-              {item.sellerFirstName ?? ""} {item.sellerLastName ?? ""}
-              {!item.sellerFirstName && !item.sellerLastName && item.sellerID}
-            </Text>
-          </View>
 
-          <View style={styles.actionRow}>
-            <BuyItem
-              itemName={item.itemName}
-              itemCost={item.costPerWeight}
-              onConfirm={(itemName, quantity, totalCost) =>
-                addToCart({
-                  id: item.id,
-                  itemName,
-                  price: item.costPerWeight,
-                  quantity,
-                })
-              }
-            />
 
-            <TouchableOpacity
-              style={styles.messageButton}
-              onPress={() => handleMessageSeller(item.sellerID)}
-            >
-              <Ionicons name="chatbubble-outline" size={16} color="white" />
-              <Text style={styles.messageButtonText}>Message</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.messageButton}
+            onPress={() => handleMessageSeller(item.sellerID)}
+          >
+            <Ionicons name="chatbubble-outline" size={16} color="white" />
+            <Text style={styles.messageButtonText}>Message</Text>
+          </TouchableOpacity>
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   if (loading) {
@@ -390,122 +255,14 @@ export default function BuyPage() {
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={styles.outerScroll}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.outerContent}
-      >
-        <Text style={styles.pageTitle}>Market Products</Text>
-        
-        <FilterChipsBar onFilterPress={handleFilterPress} />
-
-        {activeFiltersCount > 0 && (
-          <View style={styles.filterControlsRow}>
-            <TouchableOpacity onPress={resetFilters} style={styles.resetButton}>
-              <Text style={styles.resetButtonText}>Reset Filters</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setShowFilterSummary((prev) => !prev)}
-              style={styles.filterSummaryButton}
-            >
-              <Text style={styles.filterSummaryText}>
-                {activeFiltersCount} Filter{activeFiltersCount > 1 ? "s" : ""} Applied {showFilterSummary ? "▲" : "▼"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {showFilterSummary && (
-          <View style={styles.filterSummaryContainer}>
-            {selectedCrop && (
-              <Text
-                style={styles.filterTag}
-                onPress={() => setSelectedCrop(null)}
-              >
-                Crop: {selectedCrop} ✕
-              </Text>
-            )}
-            {selectedLocation && (
-              <Text
-                style={styles.filterTag}
-                onPress={() => setSelectedLocation(null)}
-              >
-                Location: {selectedLocation} ✕
-              </Text>
-            )}
-            {selectedPrice && (
-              <Text
-                style={styles.filterTag}
-                onPress={() => setSelectedPrice(null)}
-              >
-                Price: {selectedPrice} ✕
-              </Text>
-            )}
-          </View>
-        )}
-
-        {filterType && (
-          <View style={styles.filterDropdownContainer}>
-            <Text style={styles.filterDropdownTitle}>
-              Filter by {filterType}:
-            </Text>
-            <DropDownPicker
-              open={openDropdown}
-              value={dropdownValue}
-              items={dropdownItems}
-              setOpen={setOpenDropdown}
-              setValue={setDropdownValue}
-              setItems={setDropdownItems}
-              placeholder={`Select ${filterType}`}
-              searchable={filterType === "crop"}
-              zIndex={9999}
-              zIndexInverse={1000}
-              style={styles.dropdown}
-              dropDownContainerStyle={styles.dropdownContainer}
-              placeholderStyle={styles.dropdownPlaceholder}
-            />
-            <TouchableOpacity
-              style={styles.applyFilterButton}
-              onPress={() => {
-                if (filterType === "crop") {
-                  applyFilter({ crop: dropdownValue });
-                } else if (filterType === "location") {
-                  applyFilter({ location: dropdownValue });
-                } else if (filterType === "price") {
-                  applyFilter({ price: dropdownValue });
-                }
-                setFilterType(null);
-              }}
-            >
-              <Text style={styles.applyFilterText}>Apply Filter</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <View style={styles.productsWrapper}>
-          {(activeFiltersCount > 0 ? filteredCrops : crops).map((item) => (
-            <View key={item.id}>
-              {renderItem({ item })}
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-
-      {cart.length > 0 && (
-        <View style={styles.cartStrip}>
-          <TouchableOpacity
-            style={styles.cartButton}
-            onPress={() => router.push("/cart")}
-          >
-            <Text style={styles.cartText}>
-              {totalItems} {totalItems === 1 ? "item" : "items"} • $
-              {totalPrice.toFixed(2)}
-            </Text>
-            <Ionicons name="chevron-forward" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
-      )}
+      <Text style={styles.pageTitle}>Market Products</Text>
+      <FilterChipsBar />
+      <FlatList
+        data={filteredCrops}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={styles.productsWrapper}
+      />
     </View>
   );
 }
@@ -675,6 +432,63 @@ const styles = StyleSheet.create({
     color: "#1E4035",
     fontWeight: "600",
   },
+  filterSummaryContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    padding: 10,
+    backgroundColor: "#F5F5F5",
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  filterTag: {
+    backgroundColor: "#FFFFFF",
+    padding: 8,
+    borderRadius: 16,
+    margin: 4,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    fontSize: 13,
+  },
+  filterDropdownContainer: {
+    padding: 15,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    marginBottom: 15,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    zIndex: 9999,
+  },
+  filterDropdownTitle: {
+    fontWeight: "600",
+    marginBottom: 10,
+    fontSize: 16,
+    color: "#1E4035",
+  },
+  dropdown: {
+    borderColor: "#E0E0E0",
+    borderRadius: 6,
+  },
+  dropdownContainer: {
+    borderColor: "#E0E0E0",
+  },
+  dropdownPlaceholder: {
+    color: "#666666",
+  },
+  applyFilterButton: {
+    backgroundColor: "#1E4035",
+    padding: 12,
+    borderRadius: 6,
+    alignItems: "center",
+    marginTop: 15,
+  },
+  applyFilterText: {
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  
   filterSummaryContainer: {
     flexDirection: "row",
     flexWrap: "wrap",

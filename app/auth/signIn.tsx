@@ -22,21 +22,19 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Create animated values only once - don't recreate them on each render
   const [animations] = useState({
-    // logoFadeAnim: new Animated.Value(0),
+    logoFadeAnim: new Animated.Value(0),
     logoTextFadeAnim: new Animated.Value(0),
     formFadeAnim: new Animated.Value(0)
   });
 
   useEffect(() => {
-    // Create a sequence of animations
     Animated.sequence([
-      // Animated.timing(animations.logoFadeAnim, {
-      //   toValue: 1,
-      //   duration: 1000,
-      //   useNativeDriver: true,
-      // }),
+      Animated.timing(animations.logoFadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
       Animated.timing(animations.logoTextFadeAnim, {
         toValue: 1,
         duration: 800,
@@ -94,12 +92,12 @@ export default function SignIn() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <Stack.Screen options={{ headerShown: false }} />
-      {/* <Animated.View style={[styles.logoContainer, { opacity: animations.logoFadeAnim }]}>
+      <Animated.View style={[styles.logoContainer, { opacity: animations.logoFadeAnim }]}>
         <Image
-          source={require("../../assets/images/logo.png")}
+          source={require("../../assets/images/icon.png")}
           style={styles.logo}
         />
-      </Animated.View> */}
+      </Animated.View>
       <Animated.View
         style={[styles.logoContainer, { opacity: animations.logoTextFadeAnim }]}
       >
