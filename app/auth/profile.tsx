@@ -117,12 +117,7 @@ export default function ProfileSetup() {
 
   if (loading) {
     return (
-      <View
-        style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
-      >
+      <View style={[styles.container, styles.center]}>
         <ActivityIndicator size="large" color="#ffd33d" />
       </View>
     );
@@ -140,52 +135,54 @@ export default function ProfileSetup() {
           Please provide some additional information to complete your profile
         </Text>
 
-        <TextInput
-          placeholder="First Name"
-          placeholderTextColor="#aaa"
-          value={firstName}
-          onChangeText={setFirstName}
-          style={styles.input}
-        />
+        <View style={styles.inputGroup}>
+          <TextInput
+            placeholder="First Name"
+            placeholderTextColor="#aaa"
+            value={firstName}
+            onChangeText={setFirstName}
+            style={styles.input}
+          />
 
-        <TextInput
-          placeholder="Last Name"
-          placeholderTextColor="#aaa"
-          value={lastName}
-          onChangeText={setLastName}
-          style={styles.input}
-        />
+          <TextInput
+            placeholder="Last Name"
+            placeholderTextColor="#aaa"
+            value={lastName}
+            onChangeText={setLastName}
+            style={styles.input}
+          />
+        </View>
 
-        <Text style={styles.label}>Detected Location</Text>
-        <Text style={[styles.input, { color: "#000", paddingTop: 10 }]}>
-          {location}
-        </Text>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Detected Location</Text>
+          <Text style={[styles.input, styles.readOnlyInput]}>{location}</Text>
+        </View>
 
-        <Text style={styles.label}>Date of Birth</Text>
-        <Pressable
-          style={styles.datePressable}
-          onPress={() => setShowDobPicker(true)}
-        >
-          <Text style={{ color: dob ? "#000" : "#888" }}>
-            {dob || "Select Date of Birth"}
-          </Text>
-        </Pressable>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Date of Birth</Text>
+          <Pressable
+            style={[styles.input, styles.datePressable]}
+            onPress={() => setShowDobPicker(true)}
+          >
+            <Text style={{ color: dob ? "#000" : "#888" }}>
+              {dob || "Select Date of Birth"}
+            </Text>
+          </Pressable>
 
-        {showDobPicker && (
-          <>
-            <DateTimePicker
-              value={tempDob}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "calendar"}
-              onChange={(event, selectedDate) => {
-                if (event.type === "set" && selectedDate) {
-                  setTempDob(selectedDate);
-                } else {
-                  setShowDobPicker(false);
-                }
-              }}
-            />
-            <View style={{ marginTop: 10 }}>
+          {showDobPicker && (
+            <>
+              <DateTimePicker
+                value={tempDob}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "calendar"}
+                onChange={(event, selectedDate) => {
+                  if (event.type === "set" && selectedDate) {
+                    setTempDob(selectedDate);
+                  } else {
+                    setShowDobPicker(false);
+                  }
+                }}
+              />
               <Button
                 title="Confirm DOB"
                 color="#4CAF50"
@@ -197,18 +194,20 @@ export default function ProfileSetup() {
                   setShowDobPicker(false);
                 }}
               />
-            </View>
-          </>
-        )}
+            </>
+          )}
+        </View>
 
-        <TextInput
-          placeholder="Phone Number"
-          placeholderTextColor="#aaa"
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          style={styles.input}
-          keyboardType="phone-pad"
-        />
+        <View style={styles.inputGroup}>
+          <TextInput
+            placeholder="Phone Number"
+            placeholderTextColor="#aaa"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            style={styles.input}
+            keyboardType="phone-pad"
+          />
+        </View>
 
         <Button
           title="Complete Profile"
@@ -225,9 +224,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#25292e",
   },
+  center: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
   contentContainer: {
     padding: 20,
-    alignItems: "center",
   },
   title: {
     color: "#fff",
@@ -241,30 +243,28 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
+  inputGroup: {
+    marginBottom: 20,
+  },
   input: {
     width: "100%",
     height: 42,
     backgroundColor: "#fff",
     borderRadius: 6,
-    marginBottom: 16,
     paddingHorizontal: 12,
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#ccc",
   },
+  readOnlyInput: {
+    color: "#000",
+    paddingTop: 10,
+  },
   label: {
     color: "#fff",
-    alignSelf: "flex-start",
     marginBottom: 5,
-    marginTop: 10,
   },
   datePressable: {
-    width: "100%",
-    height: 40,
-    backgroundColor: "#fff",
-    borderRadius: 5,
     justifyContent: "center",
-    paddingHorizontal: 10,
-    marginBottom: 20,
   },
 });
