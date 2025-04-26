@@ -1,23 +1,4 @@
-<<<<<<< Updated upstream
-import { Text, View } from "react-native";
-import { initializeApp } from "firebase/app";
-import { firebaseConfig } from "../../firebase/firebase";
 
-export default function Index() {
-  
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>buyPage.tsx</Text>
-    </View>
-  );
-}
-=======
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -372,4 +353,4 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
 });
->>>>>>> Stashed changes
+
