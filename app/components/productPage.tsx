@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../firebase/firebase"
+import { db } from "../../firebase/firebase";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -72,7 +72,9 @@ export default function ProductPage() {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={[styles.container, { minHeight: screenHeight }]}>
+      <ScrollView
+        contentContainerStyle={[styles.container, { minHeight: screenHeight }]}
+      >
         <Image
           source={
             crop.imageURL

@@ -172,7 +172,6 @@ export default function BuyerDashboard() {
         </View>
 
         {/* Recommendations Section */}
-        
       </ScrollView>
     </View>
   );
