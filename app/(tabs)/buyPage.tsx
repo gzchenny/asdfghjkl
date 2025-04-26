@@ -32,7 +32,7 @@ interface Crop {
   id: string;
   sellerID: string;
   itemName: string;
-  costPerWeight: number;
+  costPerWeight: number; // This will be the predicted price when available
   quantity: number;
   harvestDate: string;
   imageURL?: string;
@@ -111,43 +111,82 @@ export default function BuyPage() {
     }
   };
 
+  const fetchPredictedPrice = async (productName: string): Promise<number> => {
+    const API_BASE_URL = "10.12.241.155:5000"; // Replace with your actual IP address
+    try {
+      const response = await fetch(`http://${API_BASE_URL}/predict`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ features: productName }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch predicted price");
+      }
+
+      const data = await response.json();
+      return data.prediction;
+    } catch (error) {
+      console.error("Error fetching predicted price:", error);
+      return -1; // Return -1 to indicate error
+    }
+  };
+
   useEffect(() => {
     const fetchCrops = async () => {
       try {
         const snapshot = await getDocs(collection(db, "crops"));
 
-        const cropList: Crop[] = await Promise.all(
-          snapshot.docs.map(async (docSnapshot) => {
-            const data = docSnapshot.data();
-            const cropData: Crop = {
-              id: docSnapshot.id,
-              sellerID: data.sellerID,
-              itemName: data.itemName,
-              costPerWeight: parseFloat(data.costPerWeight),
-              quantity: parseFloat(data.quantity),
-              harvestDate: data.harvestDate,
-              imageURL: data.imageURL || null,
-            };
+        const cropsWithoutPredictions = snapshot.docs.map((docSnapshot) => {
+          const data = docSnapshot.data();
+          return {
+            id: docSnapshot.id,
+            sellerID: data.sellerID,
+            itemName: data.itemName,
+            costPerWeight: parseFloat(data.costPerWeight), // Will be replaced with prediction if available
+            quantity: parseFloat(data.quantity),
+            harvestDate: data.harvestDate,
+            imageURL: data.imageURL || null,
+            sellerFirstName: "",
+            sellerLastName: "",
+          };
+        });
 
-            if (data.sellerID) {
+        const cropList: Crop[] = await Promise.all(
+          cropsWithoutPredictions.map(async (crop) => {
+            if (crop.sellerID) {
               try {
-                const userDocRef = doc(db, "users", data.sellerID);
+                const userDocRef = doc(db, "users", crop.sellerID);
                 const userDoc = await getDoc(userDocRef);
 
                 if (userDoc.exists()) {
                   const userData = userDoc.data();
-                  cropData.sellerFirstName = userData.firstName || "";
-                  cropData.sellerLastName = userData.lastName || "";
+                  crop.sellerFirstName = userData.firstName || "";
+                  crop.sellerLastName = userData.lastName || "";
                 }
               } catch (error) {
                 console.error(
-                  `Error fetching user data for seller ${data.sellerID}:`,
+                  `Error fetching user data for seller ${crop.sellerID}:`,
                   error
                 );
               }
             }
 
-            return cropData;
+            try {
+              const predictedPrice = await fetchPredictedPrice(crop.itemName);
+              if (predictedPrice > 0) {
+                crop.costPerWeight = predictedPrice; // Replace with predicted price
+              }
+            } catch (error) {
+              console.error(
+                `Error getting predicted price for ${crop.itemName}:`,
+                error
+              );
+            }
+
+            return crop;
           })
         );
 
@@ -216,22 +255,29 @@ export default function BuyPage() {
         </View>
 
         <View style={styles.actionRow}>
-        <BuyItem
-          productName={item.itemName}
-          farmName={item.sellerFirstName ?? ""}
-          initialQuantity={1}
-          pricePerItem={item.costPerWeight}
-          onConfirm={(itemName, quantity, totalCost) => { 
-            addToCart({
-              id: item.id,
-              itemName,
-              price: item.costPerWeight,
-              quantity,
-            });
-            console.log(`Added ${quantity} x ${itemName} = $${totalCost.toFixed(2)}`);
-          }}
-        />
-
+          <BuyItem
+            productName={item.itemName}
+            farmName={item.sellerFirstName ?? ""}
+            initialQuantity={1}
+            pricePerItem={item.costPerWeight}
+            onConfirm={(itemName, quantity, totalCost) => {
+              addToCart({
+                id: item.id,
+                itemName,
+                price: item.costPerWeight,
+                quantity,
+              });
+              console.log(
+                `Added ${quantity} x ${itemName} = $${totalCost.toFixed(2)}`
+              );
+              Alert.alert(
+                "Added to Cart",
+                `Added ${quantity} × ${itemName} to your cart for $${totalCost.toFixed(
+                  2
+                )}`
+              );
+            }}
+          />
 
           <TouchableOpacity
             style={styles.messageButton}
@@ -256,13 +302,41 @@ export default function BuyPage() {
   return (
     <View style={styles.container}>
       <Text style={styles.pageTitle}>Market Products</Text>
-      <FilterChipsBar />
+      <FilterChipsBar
+        onFilterPress={(type) => console.log(`Filter pressed: ${type}`)}
+      />
       <FlatList
         data={filteredCrops}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.productsWrapper}
       />
+
+      {/* Add Cart Strip */}
+      {cart.length > 0 && (
+        <View style={styles.cartStrip}>
+          <TouchableOpacity
+            style={styles.cartButton}
+            onPress={() => router.push("/cart")}
+          >
+            <Text style={styles.cartText}>
+              {cart.reduce((sum, item) => sum + item.quantity, 0)} items | $
+              {cart
+                .reduce((sum, item) => sum + item.quantity * item.price, 0)
+                .toFixed(2)}
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={styles.cartText}>View Cart</Text>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color="white"
+                style={{ marginLeft: 5 }}
+              />
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -270,7 +344,7 @@ export default function BuyPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F8F8",
+    backgroundColor: "#FFFFFF",
   },
   outerScroll: {
     flex: 1,
@@ -283,10 +357,10 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 28,
     fontWeight: "600",
-    color: "#1E4035",
-    marginBottom: 16,
     marginTop: 10,
-    paddingHorizontal: 5,
+    marginLeft: 25,
+    marginBottom: 16,
+    color: "#1E4035",
   },
   center: {
     flex: 1,
@@ -305,9 +379,11 @@ const styles = StyleSheet.create({
     padding: 14,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 2,
+    width: "95%",
+    marginHorizontal: "auto",
   },
   image: {
     width: 90,
@@ -488,78 +564,15 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#FFFFFF",
   },
-  
-  filterSummaryContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    padding: 10,
-    backgroundColor: "#F5F5F5",
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  filterTag: {
-    backgroundColor: "#FFFFFF",
-    padding: 8,
-    borderRadius: 16,
-    margin: 4,
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    fontSize: 13,
-  },
-  filterDropdownContainer: {
-    padding: 15,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    marginBottom: 15,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    zIndex: 9999,
-  },
-  filterDropdownTitle: {
-    fontWeight: "600",
-    marginBottom: 10,
-    fontSize: 16,
-    color: "#1E4035",
-  },
-  dropdown: {
-    borderColor: "#E0E0E0",
-    borderRadius: 6,
-  },
-  dropdownContainer: {
-    borderColor: "#E0E0E0",
-  },
-  dropdownPlaceholder: {
-    color: "#666666",
-  },
-  applyFilterButton: {
-    backgroundColor: "#1E4035",
-    padding: 12,
-    borderRadius: 6,
-    alignItems: "center",
-    marginTop: 15,
-  },
-  applyFilterText: {
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  priceCompareContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 4,
-  },
   predictedPriceLabel: {
     fontSize: 12,
-    color: '#555555',
+    color: "#555555",
     marginRight: 4,
   },
   predictedPriceValue: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#555555',
+    fontWeight: "600",
+    color: "#555555",
     marginRight: 6,
   },
   priceDiffTag: {
@@ -568,13 +581,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   priceDiffGood: {
-    backgroundColor: '#E6F4EA',
+    backgroundColor: "#E6F4EA",
   },
   priceDiffBad: {
-    backgroundColor: '#FEEAE6',
+    backgroundColor: "#FEEAE6",
   },
   priceDiffText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

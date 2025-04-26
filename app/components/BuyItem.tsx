@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 
 interface BuyItemProps {
   productName: string;
@@ -26,8 +26,11 @@ export default function BuyItem({
 
   const handleConfirm = () => {
     if (quantity <= 0) return;
+
     const totalCost = pricePerItem * quantity;
     onConfirm(productName, quantity, totalCost);
+
+    setQuantity(initialQuantity);
   };
 
   const increaseQuantity = () => setQuantity((prev) => prev + 1);
@@ -69,88 +72,53 @@ export default function BuyItem({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 8,
-    marginBottom: 8,
-    padding: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-    alignSelf: 'stretch',
+    marginVertical: 5,
   },
-  productName: {
-    fontSize: 17,
+  orderSummary: {
+    marginBottom: 8,
+    alignItems: "flex-end",
+  },
+  totalText: {
+    fontSize: 16,
     fontWeight: "600",
-    color: "#1c2f2e",
-    marginBottom: 8,
-  },
-  farmRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  farmName: {
-    fontSize: 15,
-    color: "#444",
-  },
-  messageButton: {
-    fontSize: 13,
-    color: "#234930",
-    fontWeight: "500",
-  },
-  date: {
-    fontSize: 13,
-    color: "#666",
-    marginBottom: 12,
+    color: "#1E4035",
   },
   actionRow: {
     flexDirection: "row",
+    alignItems: "left",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 8,
   },
   quantityPill: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#e6f1e8",
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    backgroundColor: "#F0F0F0",
     borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   quantityControl: {
-    fontSize: 16,
-    color: "#234930",
+    fontSize: 18,
     fontWeight: "600",
-    paddingHorizontal: 5,
+    color: "#1E4035",
+    paddingHorizontal: 8,
   },
   quantity: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "500",
-    color: "#234930",
-    width: 25,
+    paddingHorizontal: 8,
+    minWidth: 30,
     textAlign: "center",
   },
   orderButton: {
-    backgroundColor: "#234930",
+    backgroundColor: "#4CAF50",
     paddingVertical: 8,
-    paddingHorizontal: 15,
+    paddingHorizontal: 16,
     borderRadius: 6,
+    marginLeft: 10,
   },
   orderButtonText: {
     color: "white",
     fontWeight: "600",
     fontSize: 14,
-  },
-  orderSummary: {
-    marginBottom: 4,
-  },
-  totalText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#234930",
-    textAlign: "right",
   },
 });

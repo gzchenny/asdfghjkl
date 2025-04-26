@@ -59,6 +59,7 @@ export default function SignUp() {
         orders: [],
         totalSales: 0,
         totalRevenue: 0,
+        cart: [],
       });
 
       Alert.alert("Success", "Your account has been created!");

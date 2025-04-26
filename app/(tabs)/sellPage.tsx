@@ -53,6 +53,12 @@ export default function SellPage() {
   const [cropOptions, setCropOptions] = useState([
     { label: "Wheat", value: "Wheat" },
     { label: "Corn", value: "Corn" },
+    { label: "Apples", value: "Apples" },
+    { label: "Bananas", value: "Bananas" },
+    { label: "Potatoes", value: "Potatoes" },
+    { label: "Tomatoes", value: "Tomatoes" },
+    { label: "Carrots", value: "Carrots" },
+    { label: "Tomatoes", value: "Tomatoes" },
     { label: "Barley", value: "Barley" },
     { label: "Soybeans", value: "Soybeans" },
     { label: "Oats", value: "Oats" },
