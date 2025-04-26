@@ -12,6 +12,7 @@ import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 import Modal from "react-native-modal";
+import { CartProvider } from "../components/cartcontext"; // ✅ import here
 
 export default function AppLayout() {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -60,84 +61,92 @@ export default function AppLayout() {
   };
 
   return (
-    <Tabs
-      screenOptions={({ route }) => ({
-        headerShown: true,
-        headerTitleAlign: "left",
-        headerTitle: () => <LogoTitle />,
-        headerRight: () => (
-          <View>
-            <TouchableOpacity
-              onPress={() => setDropdownVisible(true)}
-              style={{ paddingRight: 16 }}
-            >
-              <Text style={styles.profileName}>{firstName}</Text>
-            </TouchableOpacity>
-            <Modal
-              isVisible={dropdownVisible}
-              onBackdropPress={() => setDropdownVisible(false)}
-              style={styles.modal}
-            >
-              <View style={styles.dropdown}>
-                <TouchableOpacity
-                  onPress={() => {
-                    setDropdownVisible(false);
-                    router.push("/auth/profile");
-                  }}
-                  style={styles.dropdownItem}
-                >
-                  <Text style={styles.dropdownText}>Edit Profile</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleSignOut} style={styles.dropdownItem}>
-                  <Text style={[styles.dropdownText, { color: "#cc0000" }]}>
-                    Sign Out
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </Modal>
-          </View>
-        ),
-        headerStyle: { backgroundColor: "#FFFFFF" },
-        tabBarStyle: { backgroundColor: "#F5F5F5" },
-        tabBarActiveTintColor: "#1E4035",
-        tabBarInactiveTintColor: "#888",
-        tabBarIcon: ({ color, focused }) => {
-          let iconName;
-          switch (route.name) {
-            case "index":
-              iconName = focused ? "home" : "home-outline";
-              break;
-            case "buyPage":
-              iconName = focused ? "cash" : "cash-outline";
-              break;
-            case "sellPage":
-              iconName = focused ? "storefront" : "storefront-outline";
-              break;
-            case "messages":
-              iconName = focused
-                ? "chatbubble-ellipses"
-                : "chatbubble-ellipses-outline";
-              break;
-            default:
-              iconName = "ellipse";
-          }
-          return <Ionicons name={iconName as any} size={24} color={color} />;
-        },
-        tabBarLabel:
-          route.name === "buyPage"
-            ? "Buy"
-            : route.name === "sellPage"
-            ? "Sell"
-            : route.name === "messages"
-            ? "Messages"
-            : "Home",
-      })}
-    >
-      <Tabs.Screen name="index" />
-      <Tabs.Screen name="buyPage" />
-      <Tabs.Screen name="sellPage" />
-      <Tabs.Screen name="messages" />
-    </Tabs>
+    <CartProvider> {/* ✅ Wrap everything inside CartProvider */}
+      <Tabs
+        screenOptions={({ route }) => ({
+          headerShown: true,
+          headerTitleAlign: "left",
+          headerTitle: () => <LogoTitle />,
+          headerRight: () => (
+            <View>
+              <TouchableOpacity
+                onPress={() => setDropdownVisible(true)}
+                style={{ paddingRight: 16 }}
+              >
+                <Text style={styles.profileName}>{firstName}</Text>
+              </TouchableOpacity>
+              <Modal
+                isVisible={dropdownVisible}
+                onBackdropPress={() => setDropdownVisible(false)}
+                style={styles.modal}
+              >
+                <View style={styles.dropdown}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setDropdownVisible(false);
+                      router.push("/auth/profile");
+                    }}
+                    style={styles.dropdownItem}
+                  >
+                    <Text style={styles.dropdownText}>Edit Profile</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleSignOut} style={styles.dropdownItem}>
+                    <Text style={[styles.dropdownText, { color: "#cc0000" }]}>
+                      Sign Out
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </Modal>
+            </View>
+          ),
+          headerStyle: { backgroundColor: "#FFFFFF" },
+          tabBarStyle: { backgroundColor: "#F5F5F5" },
+          tabBarActiveTintColor: "#1E4035",
+          tabBarInactiveTintColor: "#888",
+          tabBarIcon: ({ color, focused }) => {
+            let iconName;
+            switch (route.name) {
+              case "index":
+                iconName = focused ? "home" : "home-outline";
+                break;
+              case "buyPage":
+                iconName = focused ? "cash" : "cash-outline";
+                break;
+              case "sellPage":
+                iconName = focused ? "storefront" : "storefront-outline";
+                break;
+              case "messages":
+                iconName = focused
+                  ? "chatbubble-ellipses"
+                  : "chatbubble-ellipses-outline";
+                break;
+              case "cart":
+                iconName = focused ? "cart" : "cart-outline";
+                break;
+              default:
+                iconName = "ellipse";
+            }
+            return <Ionicons name={iconName as any} size={24} color={color} />;
+          },
+          tabBarLabel:
+            route.name === "buyPage"
+              ? "Buy"
+              : route.name === "sellPage"
+              ? "Sell"
+              : route.name === "messages"
+              ? "Messages"
+              : route.name === "cart"
+              ? "Cart"
+              : "Home",
+        })}
+      >
+        <Tabs.Screen name="index" />
+        <Tabs.Screen name="buyPage" />
+        <Tabs.Screen name="sellPage" />
+        <Tabs.Screen name="messages" />
+        <Tabs.Screen name="cart" />
+      </Tabs>
+    </CartProvider>
   );
 }
 

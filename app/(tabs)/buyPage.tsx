@@ -25,6 +25,7 @@ import BuyItem from "../components/BuyItem";
 import { useRouter } from "expo-router";
 import { getAuth } from "firebase/auth";
 import { Ionicons } from "@expo/vector-icons";
+import { useCart } from "../components/cartcontext"; // ✅ Import cart context
 
 interface Crop {
   id: string;
@@ -44,12 +45,10 @@ export default function BuyPage() {
   const router = useRouter();
   const auth = getAuth();
 
-  const handleBuy = (itemName: string, quantity: number, totalCost: number) => {
-    Alert.alert(
-      "Purchase Successful",
-      `You bought ${quantity} of ${itemName} for $${totalCost.toFixed(2)}`
-    );
-  };
+  const { cart, addToCart } = useCart(); // ✅ Use cart context
+
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
 
   const handleMessageSeller = async (sellerId: string) => {
     const currentUser = auth.currentUser;
@@ -60,14 +59,10 @@ export default function BuyPage() {
 
     try {
       const chatsRef = collection(db, "chats");
-      const q = query(
-        chatsRef,
-        where("userIds", "array-contains", currentUser.uid)
-      );
-
+      const q = query(chatsRef, where("userIds", "array-contains", currentUser.uid));
       const querySnapshot = await getDocs(q);
-      let existingChatId = null;
 
+      let existingChatId: string | null = null;
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         if (data.userIds && data.userIds.includes(sellerId)) {
@@ -75,8 +70,7 @@ export default function BuyPage() {
         }
       });
 
-      let chatId;
-
+      let chatId: string;
       if (existingChatId) {
         chatId = existingChatId;
       } else {
@@ -112,49 +106,38 @@ export default function BuyPage() {
       try {
         const snapshot = await getDocs(collection(db, "crops"));
 
-        const cropPromises = snapshot.docs.map(async (docSnapshot) => {
-          const data = docSnapshot.data();
+        const cropList: Crop[] = await Promise.all(
+          snapshot.docs.map(async (docSnapshot) => {
+            const data = docSnapshot.data();
+            const cropData: Crop = {
+              id: docSnapshot.id,
+              sellerID: data.sellerID,
+              itemName: data.itemName,
+              costPerWeight: parseFloat(data.costPerWeight),
+              quantity: parseFloat(data.quantity),
+              harvestDate: data.harvestDate,
+              imageURL: data.imageURL || null,
+            };
 
-          const cropData: Crop = {
-            id: docSnapshot.id,
-            sellerID: data.sellerID,
-            itemName: data.itemName,
-            costPerWeight: parseFloat(data.costPerWeight),
-            quantity: parseFloat(data.quantity),
-            harvestDate: data.harvestDate,
-            imageURL: data.imageURL || null,
-          };
+            if (data.sellerID) {
+              try {
+                const userDocRef = doc(db, "users", data.sellerID);
+                const userDoc = await getDoc(userDocRef);
 
-          if (data.sellerID) {
-            try {
-              const userDocRef = doc(db, "users", data.sellerID);
-              const userDoc = await getDoc(userDocRef);
-
-              if (userDoc.exists()) {
-                interface UserData {
-                  firstName?: string;
-                  lastName?: string;
+                if (userDoc.exists()) {
+                  const userData = userDoc.data();
+                  cropData.sellerFirstName = userData.firstName || "";
+                  cropData.sellerLastName = userData.lastName || "";
                 }
-
-                const userData = userDoc.data() as UserData;
-
-                cropData.sellerFirstName = userData.firstName || "";
-                cropData.sellerLastName = userData.lastName || "";
-              } else {
-                console.log(`No user document found for ID: ${data.sellerID}`);
+              } catch (error) {
+                console.error(`Error fetching user data for seller ${data.sellerID}:`, error);
               }
-            } catch (error) {
-              console.error(
-                `Error fetching user data for seller ${data.sellerID}:`,
-                error
-              );
             }
-          }
 
-          return cropData;
-        });
+            return cropData;
+          })
+        );
 
-        const cropList = await Promise.all(cropPromises);
         setCrops(cropList);
       } catch (error) {
         console.error("Error fetching crops:", error);
@@ -170,11 +153,7 @@ export default function BuyPage() {
   const renderItem = ({ item }: { item: Crop }) => (
     <View style={styles.card}>
       <Image
-        source={
-          item.imageURL
-            ? { uri: item.imageURL }
-            : require("../../assets/images/react-logo.png")
-        }
+        source={item.imageURL ? { uri: item.imageURL } : require("../../assets/images/react-logo.png")}
         style={styles.image}
       />
       <View style={styles.info}>
@@ -182,23 +161,20 @@ export default function BuyPage() {
           {item.itemName} (Harvested: {item.harvestDate})
         </Text>
         <Text style={styles.details}>
-          {item.costPerWeight !== undefined && item.quantity !== undefined
-            ? `$${item.costPerWeight.toFixed(2)} • ${item.quantity}kg`
-            : "Incomplete crop data"}
+          ${item.costPerWeight.toFixed(2)} • {item.quantity}kg
         </Text>
         <Text style={styles.location}>
-          Seller:{" "}
-          {item.sellerFirstName && item.sellerLastName
-            ? `${item.sellerFirstName} ${item.sellerLastName}`
-            : "Unknown"}
+          Seller: {item.sellerFirstName ?? "?"} {item.sellerLastName ?? "?"}
         </Text>
         <Text style={styles.location}>ID: {item.sellerID}</Text>
 
         <View style={styles.actionRow}>
           <BuyItem
             itemName={item.itemName}
-            itemCost={item.costPerWeight ?? 0}
-            onConfirm={handleBuy}
+            itemCost={item.costPerWeight}
+            onConfirm={(itemName, quantity, totalCost) =>
+              addToCart({ id: item.itemName, itemName, price: item.costPerWeight, quantity })
+            }
           />
 
           <TouchableOpacity
@@ -222,12 +198,25 @@ export default function BuyPage() {
   }
 
   return (
-    <FlatList
-      data={crops}
-      keyExtractor={(item) => item.id}
-      renderItem={renderItem}
-      contentContainerStyle={{ padding: 12 }}
-    />
+    <View style={{ flex: 1 }}>
+      <FlatList
+        data={crops}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={{ padding: 12, paddingBottom: 80 }}
+      />
+
+      {cart.length > 0 && (
+        <View style={styles.cartStrip}>
+          <TouchableOpacity style={styles.cartButton} onPress={() => router.push("/(tabs)/cart")}>
+            <Text style={styles.cartText}>
+              {totalItems} {totalItems === 1 ? "item" : "items"} • ${totalPrice.toFixed(2)}
+            </Text>
+            <Ionicons name="chevron-forward" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -286,5 +275,29 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontSize: 12,
     fontWeight: "500",
+  },
+  cartStrip: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#1E4035",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 10,
+    zIndex: 10,
+  },
+  cartButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  cartText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
